@@ -14,7 +14,7 @@ const findUserByname = async (name) => {
 const findUserById = async (id) => {
     try {
         return await User.findById(
-            toObjectIdMongodb(id)
+            toObjectId(id)
         ).lean()
     } catch (error) {
         throw new BadrequestError('Find user failed')

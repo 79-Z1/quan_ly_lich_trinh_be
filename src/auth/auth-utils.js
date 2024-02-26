@@ -4,6 +4,7 @@ const { findByUserId } = require('../modules/key-token/key-token.service');
 const { logger } = require('../common/helpers/logger');
 const asyncHandler = require('../common/helpers/asyncHandler');
 const { BadrequestError, AuthFailurError } = require('../common/core/error.response');
+const { handleObject } = require('../common/utils');
 
 
 const HEADER = {
