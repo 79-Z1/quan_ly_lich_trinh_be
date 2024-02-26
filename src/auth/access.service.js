@@ -9,6 +9,7 @@ const { updateKeyToken } = require("../modules/key-token/keytoken.repo");
 const { logger } = require("../common/helpers/logger");
 const { handleObject, generatePublicPrivateToken, getInfoData, isStrongPassword } = require("../common/utils");
 const { BadrequestError, AuthFailurError } = require("../common/core/error.response");
+const Friend = require("../modules/friend/friend.model");
 
 
 
@@ -133,7 +134,6 @@ class AccessService {
         )
         // B1: check Username
         const user = await findUserByEmail(email);
-        console.log("🚀🚀🚀 -> AccessService -> signUp= -> user:::", user);
         if (user) throw new BadrequestError('User is existed');
 
         // B2: hash password
@@ -144,6 +144,10 @@ class AccessService {
         });
 
         if (newUser) {
+            // Create new friend document
+            await Friend.create({
+                userId: newUser._id
+            })
             // created privateKey, publicKey
             const { privateKey, publicKey } = generatePublicPrivateToken();
             const publicKeyString = publicKey.toString();

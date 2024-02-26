@@ -1,6 +1,6 @@
 'use strict';
 const { BadrequestError } = require('../../common/core/error.response');
-const { toObjectIdMongodb } = require('../../common/utils');
+const { toObjectId } = require('../../common/utils');
 const KeyToken = require('./keytoken.model')
 
 
@@ -13,7 +13,7 @@ const updateKeyToken = async ({ keyTokenId, publicKey, newRefreshToken, isNew = 
             publicKey: publicKey
         }
         return await KeyToken.findByIdAndUpdate(
-            toObjectIdMongodb(keyTokenId),
+            toObjectId(keyTokenId),
             bodyUpdate,
             { new: isNew }
         )
@@ -24,7 +24,7 @@ const updateKeyToken = async ({ keyTokenId, publicKey, newRefreshToken, isNew = 
 
 const findByUserId = async (userId) => {
     try {
-        return await KeyToken.findOne({ userId: toObjectIdMongodb(userId) }).lean()
+        return await KeyToken.findOne({ userId: toObjectId(userId) }).lean()
     } catch (error) {
         throw new BadrequestError('Find key token failed');
     }
@@ -54,7 +54,7 @@ const findByRefreshToken = async (refreshToken) => {
 
 const deleteKeyByUserId = async (userId) => {
     try {
-        return await KeyToken.deleteOne({ userId: toObjectIdMongodb(userId) })
+        return await KeyToken.deleteOne({ userId: toObjectId(userId) })
     } catch (error) {
         throw new BadrequestError('Delete key token failed');
     }
@@ -62,7 +62,7 @@ const deleteKeyByUserId = async (userId) => {
 
 const removeKeyById = async (id) => {
     try {
-        return await KeyToken.remove(toObjectIdMongodb(id))
+        return await KeyToken.remove(toObjectId(id))
     } catch (error) {
         throw new BadrequestError('Delete key token failed');
     }

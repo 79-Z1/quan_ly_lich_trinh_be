@@ -12,7 +12,7 @@ const handleObject = (object = {}) => {
     return fixObject
 }
 
-const toObjectIdMongodb = id => {
+const toObjectId = id => {
     try {
         return new Types.ObjectId(id)
     } catch (error) {
@@ -99,7 +99,7 @@ module.exports = {
     getUnSelectData,
     removeUndefinedObject,
     updateNestedObjectParser,
-    toObjectIdMongodb,
+    toObjectId,
     handleObject,
     checkUndefinedFinanceItem,
     typeOf
