@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -16,10 +17,10 @@ app.use(express.urlencoded({ extended: true }));
 //# INIT PUB SUB REDIS
 
 //# INIT DB
-// require('./dbs/init.mongodb');
-const { checkOverload } = require('./helpers/check.connect');
-const { NotFoundError } = require('./core/error.response');
-const { logger } = require('./helpers/logger');
+require('./dbs/init.mongodb');
+const { checkOverload } = require('./common/helpers/check.connect');
+const { logger } = require('./common/helpers/logger');
+const { NotFoundError } = require('./common/core/error.response');
 // checkOverload();
 
 //# INIT ROUTES
@@ -40,6 +41,6 @@ app.use((error, req, res, next) => {
         status: error.status || 'Error',
         message: error.message || 'Internal Server Error'
     })
-})
+});
 
 module.exports = app;
