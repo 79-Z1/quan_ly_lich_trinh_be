@@ -84,10 +84,16 @@ const checkUndefinedFinanceItem = (item = {}) => {
     return false;
 }
 
+const isStrongPassword = (value) => {
+    const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,32}$/;
+    return passwordRegex.test(value);
+}
+
 const typeOf = value => Object.prototype.toString.call(value).slice(8, -1)
 
 module.exports = {
     getInfoData,
+    isStrongPassword,
     generatePublicPrivateToken,
     getSelectData,
     getUnSelectData,
