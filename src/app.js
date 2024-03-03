@@ -1,6 +1,8 @@
 
 require('dotenv').config();
 const express = require('express');
+const YAML = require('yamljs');
+const swaggerUi = require('swagger-ui-express');
 const app = express();
 
 const morgan = require('morgan');
@@ -13,6 +15,7 @@ app.use(helmet());
 app.use(compression()); // nén data trả về
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.disable('x-powered-by');
 
 //# INIT PUB SUB REDIS
 
@@ -21,10 +24,14 @@ require('./dbs/init.mongodb');
 const { checkOverload } = require('./common/helpers/check.connect');
 const { logger } = require('./common/helpers/logger');
 const { NotFoundError } = require('./common/core/error.response');
+const swaggerDocument = YAML.load(`${__dirname}/swagger.yaml`);
 // checkOverload();
 
 //# INIT ROUTES
 app.use('/', require('./routes'));
+
+//# SWAGGER
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //# HANDLING ERRORS
 app.use((req, res, next) => {
