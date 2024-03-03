@@ -1,0 +1,193 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: Schedule Manager API
+host: localhost:3005
+basePath: /api
+schemes:
+  - http
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: authorization
+    in: header
+    description: |
+      The following syntax must be used in the 'authorization' header :
+          Bearer xxxxxx.yyyyyyy.zzzzzz
+
+  ClientID:
+    type: apiKey
+    name: x-client-id
+    in: header
+    description: |
+      User id
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  #   /login/{role}:
+  /auth/signup:
+    post:
+      tags: [Auth]
+      operationId: loginPost
+      description: 'Signup to app'
+      summary: 'Signup'
+      parameters:
+        - name: authentication
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Signup'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
+        '403':
+          description: 'Access Denied'
+          schema:
+            $ref: '#/definitions/Error'
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: loginPost
+      description: 'Login to app'
+      summary: 'Login'
+      parameters:
+        # - name: role
+        #   in: path
+        #   required: true
+        #   type: string
+        - name: authentication
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Login'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
+        '403':
+          description: 'Access Denied'
+          schema:
+            $ref: '#/definitions/Error'
+
+  /friend/send-request:
+    patch:
+      tags: [Friend]
+      summary: 'Send friend request'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Friend'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+        '403':
+          description: 'Access Denied'
+          schema:
+            $ref: '#/definitions/Error'
+  /friend/accept:
+    patch:
+      tags: [Friend]
+      summary: 'Accept friend request'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Friend'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+  /friend/unfriend:
+    patch:
+      tags: [Friend]
+      summary: 'Un friend'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Friend'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+  /friend:
+    get:
+      tags: [Friend]
+      summary: 'Get all friend list'
+      security:
+        - Bearer: []
+        - ClientID: []
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
+
+definitions:
+  Login:
+    type: object
+    properties:
+      email:
+        type: string
+        example: 'hoa@gmail.com'
+      password:
+        type: string
+        example: 'P@ssw0rd'
+  Signup:
+    type: object
+    properties:
+      name:
+        type: string
+        example: 'TonyHoa'
+      email:
+        type: string
+        example: 'hoa@gmail.com'
+      address:
+        type: string
+        example: 'Nha Trang'
+      password:
+        type: string
+        example: 'P@ssw0rd'
+  Friend:
+    type: object
+    properties:
+      friendId:
+        type: string
+        example: 'user id'
+  Resource:
+    type: object
+    properties:
+      resource:
+        type: string
+  Token:
+    type: object
+    properties:
+      token:
+        type: string
+  Error:
+    type: object
+    properties:
+      message:
+        type: string
