@@ -9,7 +9,7 @@ class SuccessResponse {
 
     send(res, headers = {}) {
         return res.status(this.statusCode).json(this);
-    } c
+    }
 }
 
 class OK extends SuccessResponse {

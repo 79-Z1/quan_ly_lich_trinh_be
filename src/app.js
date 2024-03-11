@@ -1,5 +1,6 @@
 
 require('dotenv').config();
+const cors = require('cors')
 const express = require('express');
 const YAML = require('yamljs');
 const swaggerUi = require('swagger-ui-express');
@@ -10,6 +11,7 @@ const { default: helmet } = require('helmet');
 const compression = require('compression');
 
 //# INIT MIDDLEWARE
+app.use(cors())
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(compression()); // nén data trả về

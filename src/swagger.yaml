@@ -144,6 +144,41 @@ paths:
           description: 'Success'
           schema:
             $ref: '#/definitions/Token'
+  /schedule:
+    post:
+      tags: [Schedule]
+      summary: 'Create new schedule'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Schedule'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+    patch:
+      tags: [Schedule]
+      summary: 'Update schedule'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Schedule'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
 
 definitions:
   Login:
@@ -176,6 +211,65 @@ definitions:
       friendId:
         type: string
         example: 'user id'
+  Member:
+    type: object
+    properties:
+      userId:
+        type: string
+        example: 'user id'
+      permission:
+        type: string
+        enum: ['EDIT', 'VIEW']
+        default: 'VIEW'
+  Schedule:
+    type: object
+    properties:
+      ownerId:
+        type: string
+        example: 'user id'
+        x-nullable: true
+      topic:
+        type: string
+        example: 'Đi làm'
+      description:
+        type: string
+        example: 'Đi làm ngày đầu trong tuần'
+      events:
+        type: array
+        items:
+          type: items:
+          $ref: '#/definitions/Event'
+      startDate:
+        type: string
+        format: date-time
+        example: '2024-03-04T08:00:00.000Z'
+      endDate:
+        type: string
+        format: date-time 
+        example: '2024-03-04T17:00:00.000Z'
+      status:
+        type: string
+        example: 'PENDING'
+      isActive:
+        type: boolean
+        example: true
+  Event:
+    type: object
+    properties:
+      startDate:
+        type: string
+        format: date-time
+        example: '2024-03-04T08:00:00.000Z'
+      endDate:
+        type: string
+        format: date-time 
+        example: '2024-03-04T17:00:00.000Z'
+      address:
+        type: string
+        example: 'Tòa VCN'
+      googleMapId:
+        type: string
+        example: 'eda421da41'
   Resource:
     type: object
     properties:

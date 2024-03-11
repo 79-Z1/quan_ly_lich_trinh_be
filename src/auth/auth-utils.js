@@ -60,7 +60,7 @@ const createAccessToken = async (payload, publicKey, privateKey) => {
 }
 
 const authentication = asyncHandler(async (req, res, next) => {
-    //1. check userid 
+    //1. check userid
     const userId = req.headers[HEADER.CLIENT_ID];
     if (!userId) throw new AuthFailurError('User Id is required');
 
