@@ -15,8 +15,7 @@ const userSchema = new Schema({
         maxLength: 100,
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
     email: {
         type: String,
@@ -50,13 +49,13 @@ const userSchema = new Schema({
     },
     provider: {
         type: String,
-        enum: ['CREDENTIALS', 'GOOGLE', 'FACEBOOK'],
-        default: 'CREDENTIALS'
+        enum: ['credentials', 'google', 'facebook'],
+        default: 'credentials'
     },
     authType: {
         type: String,
-        enum: ['CREDENTIALS', 'OAUTH'],
-        default: 'CREDENTIALS'
+        enum: ['credentials', 'oauth'],
+        default: 'credentials'
     },
     isActive: {
         type: Boolean,

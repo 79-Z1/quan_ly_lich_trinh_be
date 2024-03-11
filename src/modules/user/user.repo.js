@@ -29,12 +29,13 @@ const findUserByEmail = async (email) => {
     }
 }
 
-const createUser = async ({ name, password, address, email }) => {
+const createUser = async ({ name, password, email, ...rest }) => {
     try {
         return await User.create({
-            name, password, address, email
+            name, password, email, ...rest
         })
     } catch (error) {
+        console.log("🚀 ~ createUser ~ error:::", error);
         throw new BadrequestError('Create user failed: ', error?.message)
     }
 }
@@ -54,10 +55,39 @@ const updateOrCreateUser = async (profile) => {
     }
 }
 
+const findByOAuthAccount = async (provider, providerAccountId) => {
+    const user = await User.findOne({ provider, providerAccountId });
+
+    return user;
+}
+
+const transformGoogleProfile = async (profile) => {
+    console.log("🚀 ~ transformGoogleProfile ~ profile:::", profile);
+    return {
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.picture,
+        providerAccountId: profile.sub,
+        locale: profile.locale
+    };
+}
+
+const transformFacebookProfile = async (profile) => {
+    return {
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.picture?.data?.url,
+        providerAccountId: profile.id
+    };
+}
+
 module.exports = {
     findUserByname,
     findUserByEmail,
     createUser,
     findUserById,
-    updateOrCreateUser
-};
+    updateOrCreateUser,
+    findByOAuthAccount,
+    transformGoogleProfile,
+    transformFacebookProfile
+}

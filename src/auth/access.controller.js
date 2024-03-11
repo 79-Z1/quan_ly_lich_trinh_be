@@ -36,6 +36,14 @@ class AccessController {
         }).send(res);
     }
 
+
+    loginGoogle = async (req, res, next) => {
+        new SuccessResponse({
+            message: "Login google successfully",
+            metadata: await AccessService.signInWithGoogle(req.body)
+        }).send(res);
+    }
+
     signUp = async (req, res, next) => {
         return new CREATED({
             message: "Signup successfully",

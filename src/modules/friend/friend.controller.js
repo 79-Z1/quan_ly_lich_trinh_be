@@ -3,7 +3,7 @@
 const { SuccessResponse } = require("../../common/core/success.response");
 const FriendService = require("./friend.service");
 
-class FinanceController {
+class FriendController {
 
     getFriendListByUserId = async (req, res, next) => {
         new SuccessResponse({
@@ -63,4 +63,4 @@ class FinanceController {
     }
 }
 
-module.exports = new FinanceController();
+module.exports = new FriendController();
