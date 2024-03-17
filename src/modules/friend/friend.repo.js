@@ -54,7 +54,6 @@ const sendFriendRequest = async ({ userId, friendId }) => {
         senderUpdateSet,
         { new: true }
     )
-    console.log("🚀 ~ sendFriendRequest ~ sender:::", sender);
 
     await Friend.findOneAndUpdate(
         { userId: toObjectId(friendId) },
