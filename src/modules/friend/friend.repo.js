@@ -30,39 +30,39 @@ const isFriend = async ({ friendList, friendId }) => {
 }
 
 const sendFriendRequest = async ({ userId, friendId }) => {
+    if (userId === friendId) throw new BadrequestError('Can not send friend request to yourself');
+
     const friendExists = await User.exists({ _id: friendId })
     if (!friendExists) throw new BadrequestError('Friend not found')
+
     const isFriend = await Friend.exists({
-        Friends: {
+        friends: {
             $elemMatch: { friendId: friendId }
         }
     });
     if (isFriend) throw new BadrequestError('Already friend')
 
-    try {
-        const senderUpdateSet = {
-            $addToSet: { 'friendsRequestSent': { recipientId: toObjectId(friendId) } }
-        }
-        const reciverUpdateSet = {
-            $addToSet: { 'friendsRequestRecevied': { senderId: toObjectId(userId) } }
-        }
-
-        const sender = await Friend.findOneAndUpdate(
-            { userId: toObjectId(userId) },
-            senderUpdateSet,
-            { new: true }
-        )
-
-        await Friend.findOneAndUpdate(
-            { userId: toObjectId(friendId) },
-            reciverUpdateSet,
-            { new: true }
-        )
-
-        return sender ? sender.friendsRequestSent : null;
-    } catch (error) {
-        throw new BadrequestError('Send friend request failed')
+    const senderUpdateSet = {
+        $addToSet: { 'friendsRequestSent': { recipientId: toObjectId(friendId) } }
     }
+    const reciverUpdateSet = {
+        $addToSet: { 'friendsRequestRecevied': { senderId: toObjectId(userId) } }
+    }
+
+    const sender = await Friend.findOneAndUpdate(
+        { userId: toObjectId(userId) },
+        senderUpdateSet,
+        { new: true }
+    )
+    console.log("🚀 ~ sendFriendRequest ~ sender:::", sender);
+
+    await Friend.findOneAndUpdate(
+        { userId: toObjectId(friendId) },
+        reciverUpdateSet,
+        { new: true }
+    )
+
+    return sender ? sender.friendsRequestSent : null;
 }
 
 const removeFriendRequest = async ({ userId, friendId }) => {

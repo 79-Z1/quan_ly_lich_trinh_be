@@ -143,6 +143,9 @@ class AccessService {
         } else {
             // Create new user from Google OAuth account
             user = await this.createNewUserFromOAuthProfile('google', googleProfile);
+            await Friend.create({
+                userId: user._id
+            })
         }
 
         // create privateKey, publicKey and save public key
@@ -230,6 +233,9 @@ class AccessService {
         });
 
         if (!newUser) throw new AuthFailurError('Sign up failed')
+        await Friend.create({
+            userId: newUser._id
+        })
         return true;
     }
 }
