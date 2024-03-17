@@ -5,7 +5,7 @@ const memberJoi = Joi.object({
     permission: Joi.string().valid('EDIT', 'VIEW').required()
 });
 
-const eventJoi = Joi.object({
+const planJoi = Joi.object({
     startDate: Joi.date().required(),
     endDate: Joi.date().required(),
     address: Joi.string().required(),
@@ -16,7 +16,7 @@ const createScheduleJoi = Joi.object({
     topic: Joi.string().trim().required(),
     description: Joi.string().trim(),
     ownerId: Joi.string().required(),
-    events: Joi.array().items(eventJoi),
+    plans: Joi.array().items(planJoi),
     status: Joi.string().valid('PENDING', 'IN_PROGRESS', 'COMPLETED'),
     startDate: Joi.date().required(),
     endDate: Joi.date().required(),
@@ -27,7 +27,7 @@ const updateScheduleJoi = Joi.object({
     ownerId: Joi.string().required(),
     topic: Joi.string().trim(),
     description: Joi.string().trim(),
-    events: Joi.array().items(eventJoi),
+    plans: Joi.array().items(planJoi),
     status: Joi.string().valid('PENDING', 'IN_PROGRESS', 'COMPLETED'),
     startDate: Joi.date(),
     endDate: Joi.date(),
@@ -35,7 +35,7 @@ const updateScheduleJoi = Joi.object({
 });
 
 module.exports = {
-    eventJoi,
+    planJoi,
     createScheduleJoi,
     updateScheduleJoi
 };

@@ -3,11 +3,18 @@ const DOCUMENT_NAME = 'Schedule'
 const COLLECTION_NAME = 'SCHEDULE';
 
 
-const eventSchema = new Schema({
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    address: { type: String, required: true },
-    googleMapId: { type: String }
+const memberSchema = new Schema({
+    _id: false,
+    memberId: { type: Schema.Types.ObjectId, ref: 'User' },
+    permission: {
+        type: String,
+        enum: ['EDIT', 'VIEW'],
+        default: 'VIEW'
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    }
 });
 
 const scheduleSchema = new Schema({
@@ -24,8 +31,8 @@ const scheduleSchema = new Schema({
         required: true,
         ref: 'User'
     },
-    events: {
-        type: [eventSchema],
+    members: {
+        type: [memberSchema],
         default: []
     },
     startDate: {
@@ -50,24 +57,6 @@ const scheduleSchema = new Schema({
     collection: COLLECTION_NAME
 });
 
-const memberSchema = new Schema({
-    scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
-    memberId: { type: Schema.Types.ObjectId, ref: 'User' },
-    permission: {
-        type: String,
-        enum: ['EDIT', 'VIEW'],
-        default: 'VIEW'
-    },
-    isActive: {
-        type: Boolean,
-        default: true
-    }
-}, {
-    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
-    collection: 'MEMBER'
-});
-
 module.exports = {
     Schedule: model(DOCUMENT_NAME, scheduleSchema),
-    Member: model('Member', memberSchema)
 }
