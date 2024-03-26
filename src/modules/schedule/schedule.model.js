@@ -8,9 +8,24 @@ const memberSchema = new Schema({
     memberId: { type: Schema.Types.ObjectId, ref: 'User' },
     permission: {
         type: String,
-        enum: ['EDIT', 'VIEW'],
-        default: 'VIEW'
+        enum: ['edit', 'view'],
+        default: 'view'
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    }
+});
+
+const planSchema = new Schema({
+    _id: false,
+    title: { type: String, required: true },
+    cost: { type: Number },
+    // scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
+    startAt: { type: Date, required: true },
+    endAt: { type: Date, required: true },
+    address: { type: String, required: true },
+    location: { lat: Number, lng: Number },
     isActive: {
         type: Boolean,
         default: true
@@ -26,6 +41,10 @@ const scheduleSchema = new Schema({
         type: String,
         trim: true
     },
+    imageUrl: {
+        type: String,
+        trim: true
+    },
     ownerId: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -33,6 +52,14 @@ const scheduleSchema = new Schema({
     },
     members: {
         type: [memberSchema],
+        default: []
+    },
+    total: {
+        type: Number,
+        default: 0
+    },
+    plans: {
+        type: [planSchema],
         default: []
     },
     startDate: {
@@ -45,8 +72,8 @@ const scheduleSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'],
-        default: ['PENDING']
+        enum: ['pending', 'in_progress', 'completed'],
+        default: 'pending'
     },
     isActive: {
         type: Boolean,

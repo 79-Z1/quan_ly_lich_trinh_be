@@ -3,10 +3,25 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { create, update } = require("./schedule.repo");
+const { create, update, getAll } = require("./schedule.repo");
 
 
 class ScheduleService {
+
+    static getAll = async ({ userId }) => {
+        if (!userId) throw new BadrequestError('UserId is required');
+        logger.info(
+            `ScheduleService -> getAll [START]\n(INPUT) ${handleObject({ userId })
+            }`
+        )
+
+        const schedules = await getAll(userId);
+        logger.info(
+            `ScheduleService -> getAll [END]\n(INPUT) ${handleObject({ schedules })
+            }`
+        )
+        return schedules;
+    }
 
     static create = async ({ ownerId, topic, startDate, endDate, ...payload }) => {
         if (!ownerId) throw new BadrequestError('Owner is required');
@@ -15,7 +30,7 @@ class ScheduleService {
         if (!endDate) throw new BadrequestError('End Date is required');
 
         logger.info(
-            `ScheduleService -> create [START]\n(INPUT) ${handleObject({ ownerId, topic, startDate, endDate, payload })
+            `ScheduleService -> create [START]\n(INPUT) ${handleObject({ ownerId, topic, startDate, endDate, ...payload })
             }`
         )
 

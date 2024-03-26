@@ -5,6 +5,15 @@ const ScheduleService = require("./schedule.service");
 
 class ScheduleController {
 
+    getAll = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Get all schedule success',
+            metadata: await ScheduleService.getAll({
+                userId: req.user.userId
+            })
+        }).send(res);
+    }
+
     create = async (req, res, next) => {
         new SuccessResponse({
             message: 'Create schedule success',

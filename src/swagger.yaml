@@ -145,6 +145,17 @@ paths:
           schema:
             $ref: '#/definitions/Token'
   /schedule:
+    get:
+      tags: [Schedule]
+      summary: 'Get all schedule list'
+      security:
+        - Bearer: []
+        - ClientID: []
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
     post:
       tags: [Schedule]
       summary: 'Create new schedule'
@@ -156,7 +167,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Schedule'
+            $ref: '#/definitions/CreateSchedule'
       responses:
         '200':
           description: 'Success'
@@ -219,57 +230,123 @@ definitions:
         example: 'user id'
       permission:
         type: string
-        enum: ['EDIT', 'VIEW']
-        default: 'VIEW'
-  Schedule:
+        enum: ['edit', 'view']
+        default: 'view'
+  CreateSchedule:
     type: object
     properties:
-      ownerId:
-        type: string
-        example: 'user id'
-        x-nullable: true
+      # ownerId:
+      #   type: string
+      #   example: 'user id'
+      #   x-nullable: true
       topic:
         type: string
         example: 'Đi làm'
       description:
         type: string
         example: 'Đi làm ngày đầu trong tuần'
-      events:
+      imageUrl:
+        type: string
+        example: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg'
+      members:
         type: array
         items:
           type: items:
-          $ref: '#/definitions/Event'
+          $ref: '#/definitions/Member'
+      total:
+        type: number
+        example: 100000
       startDate:
         type: string
         format: date-time
         example: '2024-03-04T08:00:00.000Z'
       endDate:
         type: string
-        format: date-time 
+        format: date-time
         example: '2024-03-04T17:00:00.000Z'
       status:
         type: string
-        example: 'PENDING'
+        enum: ['pending', 'in_progress', 'completed']
+        example: 'pending'
       isActive:
         type: boolean
         example: true
-  Event:
+  Schedule:
     type: object
     properties:
+      # ownerId:
+      #   type: string
+      #   example: 'user id'
+      #   x-nullable: true
+      topic:
+        type: string
+        example: 'Đi làm'
+      description:
+        type: string
+        example: 'Đi làm ngày đầu trong tuần'
+      imageUrl:
+        type: string
+        example: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg'
+      plans:
+        type: array
+        items:
+          type: items:
+          $ref: '#/definitions/Plan'
+      members:
+        type: array
+        items:
+          type: items:
+          $ref: '#/definitions/Member'
+      total:
+        type: number
+        example: 100000
       startDate:
         type: string
         format: date-time
         example: '2024-03-04T08:00:00.000Z'
       endDate:
         type: string
-        format: date-time 
+        format: date-time
+        example: '2024-03-04T17:00:00.000Z'
+      status:
+        type: string
+        enum: ['pending', 'in_progress', 'completed']
+        example: 'pending'
+      isActive:
+        type: boolean
+        example: true
+  Plan:
+    type: object
+    properties:
+      title:
+        type: string
+        example: 'Đi ăn sáng'
+      cost:
+        type: number
+        example: 10000
+      startAt:
+        type: string
+        format: date-time
+        example: '2024-03-04T08:00:00.000Z'
+      endAt:
+        type: string
+        format: date-time
         example: '2024-03-04T17:00:00.000Z'
       address:
         type: string
         example: 'Tòa VCN'
-      googleMapId:
-        type: string
-        example: 'eda421da41'
+      location:
+        type: object
+        $ref: '#/definitions/Location'
+  Location:
+    type: object
+    properties:
+      lat:
+        type: number
+        example: 21.006
+      lng:
+        type: number
+        example: 105.846
   Resource:
     type: object
     properties:

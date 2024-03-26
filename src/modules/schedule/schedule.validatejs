@@ -2,25 +2,31 @@ const Joi = require('joi');
 
 const memberJoi = Joi.object({
     userId: Joi.string().required(),
-    permission: Joi.string().valid('EDIT', 'VIEW').required()
+    permission: Joi.string().valid('edit', 'view').required()
 });
 
 const planJoi = Joi.object({
-    startDate: Joi.date().required(),
-    endDate: Joi.date().required(),
+    title: Joi.string().required(),
+    cost: Joi.number(),
+    startAt: Joi.date().required(),
+    endAt: Joi.date().required(),
     address: Joi.string().required(),
-    googleMapId: Joi.string()
+    location: Joi.object({
+        lat: Joi.number().required(),
+        lng: Joi.number().required()
+    })
 });
 
 const createScheduleJoi = Joi.object({
     topic: Joi.string().trim().required(),
     description: Joi.string().trim(),
     ownerId: Joi.string().required(),
+    imageUrl: Joi.string().trim().allow(''),
     plans: Joi.array().items(planJoi),
-    status: Joi.string().valid('PENDING', 'IN_PROGRESS', 'COMPLETED'),
+    members: Joi.array().items(memberJoi),
     startDate: Joi.date().required(),
     endDate: Joi.date().required(),
-    isActive: Joi.boolean()
+    total: Joi.number()
 });
 
 const updateScheduleJoi = Joi.object({
@@ -28,7 +34,8 @@ const updateScheduleJoi = Joi.object({
     topic: Joi.string().trim(),
     description: Joi.string().trim(),
     plans: Joi.array().items(planJoi),
-    status: Joi.string().valid('PENDING', 'IN_PROGRESS', 'COMPLETED'),
+    members: Joi.array().items(memberJoi),
+    status: Joi.string().valid('pending', 'in_progress', 'completed'),
     startDate: Joi.date(),
     endDate: Joi.date(),
     isActive: Joi.boolean()
