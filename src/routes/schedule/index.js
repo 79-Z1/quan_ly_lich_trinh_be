@@ -12,5 +12,6 @@ router.use(authentication)
 /// ---------------------------- Need check authen route ---------------------------- ///
 router.post('', asyncHandler(scheduleController.create));
 router.patch('', asyncHandler(scheduleController.update));
+router.get('', asyncHandler(scheduleController.getAll));
 
 module.exports = router;

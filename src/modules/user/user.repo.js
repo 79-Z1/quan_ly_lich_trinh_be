@@ -35,7 +35,6 @@ const createUser = async ({ name, password, email, ...rest }) => {
             name, password, email, ...rest
         })
     } catch (error) {
-        console.log("🚀 ~ createUser ~ error:::", error);
         throw new BadrequestError('Create user failed: ', error?.message)
     }
 }
@@ -62,7 +61,6 @@ const findByOAuthAccount = async (provider, providerAccountId) => {
 }
 
 const transformGoogleProfile = async (profile) => {
-    console.log("🚀 ~ transformGoogleProfile ~ profile:::", profile);
     return {
         name: profile.name,
         email: profile.email,

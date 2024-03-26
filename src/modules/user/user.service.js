@@ -8,7 +8,7 @@ const { createUser } = require("./user.repo");
 
 class UserService {
 
-    static = async ({ name, password = '', email, ...rest }) => {
+    static create = async ({ name, password = '', email, ...rest }) => {
         if (!name) throw new BadrequestError('Name is required');
         if (!email) throw new BadrequestError('Email is required');
 

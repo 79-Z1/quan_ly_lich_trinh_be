@@ -42,10 +42,8 @@ class KeyTokenService {
         )
 
         const keytoken = await findByUserId(userId)
-        if (!keytoken) throw new BadrequestError('Wrong user id')
-
         logger.info(
-            `KeyTokenService -> findByUserId [END]\n(OUTPUT) ${handleObject({ keytoken })
+            `KeyTokenService -> findByUserId [END]\n(OUTPUT) ${handleObject({ has: !!keytoken })
             }`
         )
         return keytoken;

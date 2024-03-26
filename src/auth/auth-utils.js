@@ -62,10 +62,15 @@ const createAccessToken = async (payload, publicKey, privateKey) => {
 const authentication = asyncHandler(async (req, res, next) => {
     //1. check userid
     const userId = req.headers[HEADER.CLIENT_ID];
-    if (!userId) throw new AuthFailurError('User Id is required');
-
+    const accessToken = req.headers[HEADER.AUTHORIZATION];
     //2. get access token
     const keyStore = await findByUserId(userId);
+    logger.info(
+        `AuthUtils -> authentication [START]\n(INPUT) ${handleObject({ userId, accessToken })
+        }`
+    )
+
+    if (!userId) throw new AuthFailurError('User Id is required');
     if (!keyStore) throw new AuthFailurError('User Id is wrong');
 
     if (req.headers[HEADER.REFRESHTOKEN]) {
@@ -81,10 +86,8 @@ const authentication = asyncHandler(async (req, res, next) => {
         req.user = decodeUser;
         req.refreshToken = refreshToken;
         logger.info(
-            `Middleware -> authentication [END]\n(INPUT) ${handleObject({
-                keyStore: req.keyStore,
-                decodeUser: req.user,
-                refreshToken: req.refreshToken
+            `AuthUtils -> authentication [END]\n(INPUT) ${handleObject({
+                passRefreshToken: true
             })
             }`
         )
@@ -92,12 +95,7 @@ const authentication = asyncHandler(async (req, res, next) => {
     }
 
     //3 verify token
-    const accessToken = req.headers[HEADER.AUTHORIZATION];
     if (!accessToken) throw new AuthFailurError('Access token is required');
-    logger.info(
-        `Middleware -> authentication [START]\n(INPUT) ${handleObject({ userId, accessToken })
-        }`
-    )
 
     //4. check user in dbs
     //5. check keyStore with this userId
@@ -109,8 +107,7 @@ const authentication = asyncHandler(async (req, res, next) => {
     req.user = decodeUser;
     logger.info(
         `Middleware -> authentication [END]\n(INPUT) ${handleObject({
-            keyStore: req.keyStore,
-            decodeUser: req.user,
+            passRefreshToken: true
         })
         }`
     )

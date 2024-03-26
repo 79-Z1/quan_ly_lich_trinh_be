@@ -1,15 +1,27 @@
 const { toObjectId, getUnSelectData } = require('../../common/utils');
 const { BadrequestError } = require('../../common/core/error.response');
 const { Schedule, Member } = require('./schedule.model');
-const { createScheduleJoi, updateScheduleJoi } = require('./schedule.util');
+const { createScheduleJoi, updateScheduleJoi } = require('./schedule.validatejs');
+const { compareDays } = require('../../common/utils/date.util');
 
+
+const getAll = async (userId) => {
+    try {
+        return await Schedule.find({ isActive: true, ownerId: userId }).lean();
+    } catch (error) {
+        throw new BadrequestError('Get all schedule failed')
+    }
+}
 
 const create = async (schedule) => {
     try {
         const { error, value } = createScheduleJoi.validate(schedule);
-        console.log("🚀 ~ create ~ value:::", value);
         if (error) {
             throw new BadrequestError(error.message);
+        }
+
+        if (compareDays(value.startDate, new Date())) {
+            value.status = 'in_progress'
         }
 
         const newSchedule = await Schedule.create(value);
@@ -22,7 +34,6 @@ const create = async (schedule) => {
 const update = async (schedule) => {
     try {
         const { error, value } = updateScheduleJoi.validate(schedule);
-        console.log("🚀 ~ create ~ value:::", value);
         if (error) {
             throw new BadrequestError(error.message);
         }
@@ -32,7 +43,6 @@ const update = async (schedule) => {
         });
         return updatedSchedule;
     } catch (error) {
-        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new schedule failed')
     }
 }
@@ -72,5 +82,5 @@ const editPermissions = async ({ friendId, scheduleId }) => {
 }
 
 module.exports = {
-    create, update, addFriendToSchedule, editPermissions
+    create, update, addFriendToSchedule, editPermissions, getAll
 };
