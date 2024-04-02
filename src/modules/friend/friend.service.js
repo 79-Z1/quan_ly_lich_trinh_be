@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { sendFriendRequest, removeFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriend, getFriendListByUserId } = require("./friend.repo");
+const { sendFriendRequest, removeFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriend, getFriendListByUserId, getFriendForFriendPage } = require("./friend.repo");
 
 
 class FriendService {
@@ -26,6 +26,22 @@ class FriendService {
         return friends;
     }
 
+    static getFriendForFriendPage = async ({ userId }) => {
+        if (!userId) throw new BadrequestError('UserId is required');
+        logger.info(
+            `FriendService -> getFriendForFriendPage [START]\n(INPUT) ${handleObject({ userId })
+            }`
+        )
+
+        const result = await getFriendForFriendPage({ userId })
+
+        logger.info(
+            `FriendService -> getFriendForFriendPage [END]\n(OUTPUT) ${handleObject({ result })
+            }`
+        )
+        return result;
+    }
+
     static sendFriendRequest = async ({ userId, friendId }) => {
         if (!userId) throw new BadrequestError('UserId is required');
         if (!friendId) throw new BadrequestError('FriendId is required');
@@ -36,14 +52,14 @@ class FriendService {
 
         if (userId === friendId) throw new BadrequestError('Can not send friend request to yourself');
 
-        const friendsRequestSent = await sendFriendRequest({ userId, friendId })
-        if (!friendsRequestSent) throw new BadrequestError('Send friend request failed');
+        const result = await sendFriendRequest({ userId, friendId })
+        if (!result?.friendsRequestSent) throw new BadrequestError('Send friend request failed');
 
         logger.info(
-            `FriendService -> sendFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestSent })
+            `FriendService -> sendFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestSent: result?.friendsRequestSent })
             }`
         )
-        return friendsRequestSent;
+        return result.friendsRequestSent;
     }
 
     static removeFriendRequest = async ({ userId, friendId }) => {
@@ -76,14 +92,14 @@ class FriendService {
 
         if (userId === friendId) throw new BadrequestError('Can not accept friend request to yourself');
 
-        const friendsRequestRecevied = await acceptFriendRequest({ userId, friendId })
-        if (!friendsRequestRecevied) throw new BadrequestError('Accept friend request failed');
+        const friendsRequestReceved = await acceptFriendRequest({ userId, friendId })
+        if (!friendsRequestReceved) throw new BadrequestError('Accept friend request failed');
 
         logger.info(
-            `FriendService -> acceptFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestRecevied })
+            `FriendService -> acceptFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestReceved })
             }`
         )
-        return friendsRequestRecevied;
+        return friendsRequestReceved;
     }
 
     static rejectFriendRequest = async ({ userId, friendId }) => {
@@ -96,14 +112,14 @@ class FriendService {
 
         if (userId === friendId) throw new BadrequestError('Can not reject friend request to yourself');
 
-        const friendsRequestRecevied = await rejectFriendRequest({ userId, friendId })
-        if (!friendsRequestRecevied) throw new BadrequestError('Reject friend request failed');
+        const friendsRequestReceved = await rejectFriendRequest({ userId, friendId })
+        if (!friendsRequestReceved) throw new BadrequestError('Reject friend request failed');
 
         logger.info(
-            `FriendService -> rejectFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestRecevied })
+            `FriendService -> rejectFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestReceved })
             }`
         )
-        return friendsRequestRecevied;
+        return friendsRequestReceved;
     }
 
     static unfriend = async ({ userId, friendId }) => {

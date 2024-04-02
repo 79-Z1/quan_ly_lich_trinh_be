@@ -1,7 +1,8 @@
-const { toObjectId, getUnSelectData } = require('../../common/utils');
+const { toObjectId, getUnSelectData, getInfoData } = require('../../common/utils');
 const { BadrequestError } = require('../../common/core/error.response');
 const Friend = require('./friend.model');
 const User = require('../user/user.model');
+
 
 const getFriendListByUserId = async (userId) => {
     try {
@@ -21,11 +22,13 @@ const getFriendListByUserId = async (userId) => {
     }
 }
 
-const isFriend = async ({ friendList, friendId }) => {
+const checkIsFriend = async ({ userId, friendId }) => {
+    const userFriend = await Friend.findOne({ userId: toObjectId(userId) }).lean();
+    const friendList = userFriend.friends;
     try {
         return friendList.some(friend => friend._id.equals(friendId))
     } catch (error) {
-        throw new Error('Check is friend failed')
+        throw new BadrequestError('Check is friend failed')
     }
 }
 
@@ -35,18 +38,14 @@ const sendFriendRequest = async ({ userId, friendId }) => {
     const friendExists = await User.exists({ _id: friendId })
     if (!friendExists) throw new BadrequestError('Friend not found')
 
-    const isFriend = await Friend.exists({
-        friends: {
-            $elemMatch: { friendId: friendId }
-        }
-    });
+    const isFriend = await checkIsFriend({ userId, friendId })
     if (isFriend) throw new BadrequestError('Already friend')
 
     const senderUpdateSet = {
         $addToSet: { 'friendsRequestSent': { recipientId: toObjectId(friendId) } }
     }
     const reciverUpdateSet = {
-        $addToSet: { 'friendsRequestRecevied': { senderId: toObjectId(userId) } }
+        $addToSet: { 'friendsRequestReceved': { senderId: toObjectId(userId) } }
     }
 
     const sender = await Friend.findOneAndUpdate(
@@ -55,13 +54,75 @@ const sendFriendRequest = async ({ userId, friendId }) => {
         { new: true }
     )
 
-    await Friend.findOneAndUpdate(
+    const reciver = await Friend.findOneAndUpdate(
         { userId: toObjectId(friendId) },
         reciverUpdateSet,
         { new: true }
     )
 
-    return sender ? sender.friendsRequestSent : null;
+    return {
+        friendsRequestSent: sender ? sender.friendsRequestSent : null,
+        friendsRequestReceved: reciver ? reciver.friendsRequestReceved : null
+    };
+}
+
+const getFriendsReceived = async (userId) => {
+    try {
+        const user = await Friend.findOne({ userId: toObjectId(userId) });
+        const friendsReceived = await Promise.all(user.friendsRequestReceved.map(async (friend) => {
+            const result = await User.findById(toObjectId(friend.senderId))
+            return {
+                user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                createdAt: friend.createdAt,
+                updatedAt: friend.updatedAt
+            };
+        }))
+        return friendsReceived ? friendsReceived : []
+    } catch (error) {
+        throw new BadrequestError('Get friends received failed')
+    }
+}
+
+const getFriendForFriendPage = async ({ userId }) => {
+    try {
+        const friend = await Friend.findOne({ userId: toObjectId(userId) });
+
+        const [friends, friendsRequestReceved, friendsRequestSent] = await Promise.all([
+            Promise.all(friend.friends.map(async (friend) => {
+                const result = await User.findById(toObjectId(friend.friendId))
+                return {
+                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                    createdAt: friend.createdAt,
+                    updatedAt: friend.updatedAt
+                };
+            })),
+            Promise.all(friend.friendsRequestReceved.map(async (friend) => {
+                const result = await User.findById(toObjectId(friend.senderId))
+                return {
+                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                    createdAt: friend.createdAt,
+                    updatedAt: friend.updatedAt
+                };
+            })),
+            Promise.all(friend.friendsRequestSent.map(async (friend) => {
+                const result = await User.findById(toObjectId(friend.recipientId))
+                return {
+                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                    createdAt: friend.createdAt,
+                    updatedAt: friend.updatedAt
+                };
+            }))
+        ]);
+
+
+        return {
+            friends,
+            friendsRequestReceved,
+            friendsRequestSent
+        }
+    } catch (error) {
+        throw new BadrequestError('Get friends for friend page failed')
+    }
 }
 
 const removeFriendRequest = async ({ userId, friendId }) => {
@@ -73,7 +134,7 @@ const removeFriendRequest = async ({ userId, friendId }) => {
             $pull: { 'friendsRequestSent': { recipientId: toObjectId(friendId) } }
         }
         const reciverUpdateSet = {
-            $pull: { 'friendsRequestRecevied': { senderId: toObjectId(userId) } }
+            $pull: { 'friendsRequestReceved': { senderId: toObjectId(userId) } }
         }
 
         const sender = await Friend.findOneAndUpdate(
@@ -101,7 +162,7 @@ const acceptFriendRequest = async ({ userId, friendId }) => {
 
         const userUpdateSet = {
             $addToSet: { 'friends': { friendId: toObjectId(friendId) } },
-            $pull: { 'friendsRequestRecevied': { senderId: toObjectId(friendId) } }
+            $pull: { 'friendsRequestReceved': { senderId: toObjectId(friendId) } }
         }
 
         const friendUpdateSet = {
@@ -121,7 +182,7 @@ const acceptFriendRequest = async ({ userId, friendId }) => {
             { new: true }
         )
 
-        return user ? user.friendsRequestRecevied : null;
+        return user?.friendsRequestReceved ? true : false;
     } catch (error) {
         throw new BadrequestError('Accept friend request failed')
     }
@@ -133,7 +194,7 @@ const rejectFriendRequest = async ({ userId, friendId }) => {
         if (!friendExists) throw new BadrequestError('Friend not found')
 
         const userUpdateSet = {
-            $pull: { 'friendsRequestRecevied': { senderId: toObjectId(friendId) } }
+            $pull: { 'friendsRequestReceved': { senderId: toObjectId(friendId) } }
         }
 
         const friendUpdateSet = {
@@ -152,9 +213,22 @@ const rejectFriendRequest = async ({ userId, friendId }) => {
             { new: true }
         )
 
-        return user ? user.friendsRequestRecevied : null;
+        return user ? user.friendsRequestReceved : null;
     } catch (error) {
         throw new BadrequestError('Reject friend request failed')
+    }
+}
+
+const getFriendForSocket = async (userId) => {
+    try {
+        const user = await User.findById(toObjectId(userId)).lean()
+        return {
+            user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: user }),
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }
+    } catch (error) {
+        throw new Error('Get friend for socket failed')
     }
 }
 
@@ -190,10 +264,13 @@ const unfriend = async ({ userId, friendId }) => {
 
 module.exports = {
     getFriendListByUserId,
-    isFriend,
+    checkIsFriend,
     unfriend,
     sendFriendRequest,
     removeFriendRequest,
     acceptFriendRequest,
-    rejectFriendRequest
+    rejectFriendRequest,
+    getFriendsReceived,
+    getFriendForFriendPage,
+    getFriendForSocket
 };

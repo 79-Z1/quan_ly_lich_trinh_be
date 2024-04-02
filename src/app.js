@@ -5,6 +5,12 @@ const express = require('express');
 const YAML = require('yamljs');
 const swaggerUi = require('swagger-ui-express');
 const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: '*',
+    }
+});
 
 const morgan = require('morgan');
 const { default: helmet } = require('helmet');
@@ -26,11 +32,17 @@ require('./dbs/init.mongodb');
 const { checkOverload } = require('./common/helpers/check.connect');
 const { logger } = require('./common/helpers/logger');
 const { NotFoundError } = require('./common/core/error.response');
+const { connection } = require('./modules/gateway/connection.gateway');
 const swaggerDocument = YAML.load(`${__dirname}/swagger.yaml`);
 // checkOverload();
 
 //# INIT ROUTES
-app.use('/', require('./routes'));
+app.use('/api', require('./routes'));
+
+//# global variable
+global._io = io;
+//# INIT SOCKET
+global._io.on('connection', connection);
 
 //# SWAGGER
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -52,4 +64,4 @@ app.use((error, req, res, next) => {
     })
 });
 
-module.exports = app;
+module.exports = http;
