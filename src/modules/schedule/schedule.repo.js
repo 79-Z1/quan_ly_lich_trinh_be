@@ -1,7 +1,7 @@
 const { toObjectId, getUnSelectData } = require('../../common/utils');
 const { BadrequestError } = require('../../common/core/error.response');
 const { Schedule, Member } = require('./schedule.model');
-const { createScheduleJoi, updateScheduleJoi } = require('./schedule.validatejs');
+const { createScheduleJoi, updateScheduleJoi } = require('./schedule.validate.js');
 const { compareDays } = require('../../common/utils/date.util');
 
 

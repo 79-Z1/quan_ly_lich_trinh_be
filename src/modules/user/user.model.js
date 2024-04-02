@@ -1,10 +1,12 @@
 const { Schema, model } = require('mongoose');
 const DOCUMENT_NAME = 'User'
 const COLLECTION_NAME = 'USER';
-const bcrypt = require('bcrypt');
 
 
 const userSchema = new Schema({
+    socketId: {
+        type: String
+    },
     name: {
         type: String,
         trim: true

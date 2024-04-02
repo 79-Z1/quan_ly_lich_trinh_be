@@ -12,6 +12,16 @@ class FriendController {
         }).send(res);
     }
 
+    getFriendForFriendPage = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Get friend for friend page success',
+            metadata: await FriendService.getFriendForFriendPage({
+                userId: req.user.userId,
+                tab: req.query.tab
+            })
+        }).send(res);
+    }
+
     sendFriendRequest = async (req, res, next) => {
         new SuccessResponse({
             message: 'Send friend request success',

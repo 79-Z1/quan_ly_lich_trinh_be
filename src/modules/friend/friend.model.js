@@ -29,7 +29,7 @@ const friendSchema = new mongoose.Schema({
             }
         }]
     },
-    friendsRequestRecevied: {
+    friendsRequestReceved: {
         _id: false,
         default: [],
         type: [{

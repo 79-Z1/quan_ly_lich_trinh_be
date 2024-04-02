@@ -1,6 +1,7 @@
 'use strict';
 
 const { BadrequestError } = require("../../common/core/error.response");
+const { toObjectId } = require("../../common/utils/object.util");
 const User = require("./user.model");
 
 const findUserByname = async (name) => {
@@ -8,6 +9,22 @@ const findUserByname = async (name) => {
         return await User.findOne({ name }).lean()
     } catch (error) {
         throw new BadrequestError('Find user failed')
+    }
+}
+
+const updateUserSocketId = async (id, socketId) => {
+    try {
+        return await User.findOneAndUpdate({ _id: id }, { socketId }, { new: true })
+    } catch (error) {
+        throw new Error('Update user socket id failed')
+    }
+}
+
+const findUserSocketId = async (userId) => {
+    try {
+        return await User.findOne({ _id: userId }).select('socketId').lean()
+    } catch (error) {
+        throw new BadrequestError('Find user socket id failed')
     }
 }
 
@@ -82,9 +99,11 @@ const transformFacebookProfile = async (profile) => {
 module.exports = {
     findUserByname,
     findUserByEmail,
+    findUserSocketId,
     createUser,
     findUserById,
     updateOrCreateUser,
+    updateUserSocketId,
     findByOAuthAccount,
     transformGoogleProfile,
     transformFacebookProfile

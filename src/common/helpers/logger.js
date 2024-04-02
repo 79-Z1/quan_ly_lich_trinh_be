@@ -28,7 +28,7 @@ const logger = winston.createLogger({
                 winston.format.label({ label: 'INFO' }),
                 winston.format.printf(
                     log => {
-                        return `[🚀🚀🚀] [${log.timestamp}] [${log.label}] ${log.message}`;
+                        return `🚀 [${log.timestamp}]::: ${log.message}`;
                     }
                 ),
                 winston.format.colorize({ all: true }),
@@ -42,7 +42,7 @@ const logger = winston.createLogger({
                 winston.format.label({ label: 'INFO' }),
                 winston.format.printf(
                     log => {
-                        return `[🚀🚀🚀] [${log.timestamp}] [${log.label}] ${log.message}`;
+                        return `🚀 [${log.timestamp}]::: ${log.message}`;
                     },
                 ),
             )
@@ -53,7 +53,7 @@ const logger = winston.createLogger({
                 errorFilter(),
                 winston.format.label({ label: 'ERROR' }),
                 winston.format.printf(log => {
-                    return `[❌❌❌] [${log.timestamp}] [${log.label}] ${log.message}`;
+                    return `❌ [${log.timestamp}]::: ${log.message}`;
                     // if (log.stack) return `[❌❌❌] [${log.timestamp}] [${log.label}] ${log.stack}`;
                 }),
                 winston.format.colorize({ all: true }),
@@ -66,7 +66,7 @@ const logger = winston.createLogger({
                 errorFilter(),
                 winston.format.label({ label: 'ERROR' }),
                 winston.format.printf(log => {
-                    return `[❌❌❌] [${log.timestamp}] [${log.label}] ${log.message}`;
+                    return `❌ [${log.timestamp}::: ${log.message}`;
                 }),
             )
         })
