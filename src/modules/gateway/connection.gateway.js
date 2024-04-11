@@ -1,19 +1,20 @@
 const { logger } = require("../../common/helpers/logger");
 const { updateUserSocketId } = require("../user/user.repo");
+const { chatEvent } = require("./chat.socket");
 const { friendEvent } = require("./friend.socket");
-let userId;
 
 const connection = async (socket) => {
     logger.info(`------- A user connected! || id: ${socket.id} -------`);
 
-    socket.on('set-user-socket-id', ({ userId }) => {
-        userId = userId;
+    await socket.on('set-user-socket-id', async ({ userId }) => {
         updateUserSocketId(userId, socket.id);
         logger.info(`User ${userId} ==> socket ${socket.id}`);
-    });
+        //# HANDLE FRIEND EVENT
+        await friendEvent(socket, userId);
 
-    //# HANDLE FRIEND EVENT
-    await friendEvent(socket, userId);
+        //# HANDLE CHAT EVENT
+        await chatEvent(socket, userId);
+    });
 
     //# HANDLE DISCONNECT
     await socket.on('disconnect', () => {

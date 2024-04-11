@@ -1,5 +1,10 @@
+<<<<<<< Updated upstream
 const { getFriendsReceived, getFriendForSocket } = require("../friend/friend.repo");
 const { findUserSocketId } = require("../user/user.repo");
+=======
+const { logger } = require("../../common/helpers/logger");
+const { getFriendForSocket } = require("../friend/friend.repo");
+>>>>>>> Stashed changes
 
 const friendEvent = async (socket, userId) => {
 

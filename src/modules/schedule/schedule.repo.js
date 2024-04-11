@@ -27,6 +27,7 @@ const create = async (schedule) => {
         const newSchedule = await Schedule.create(value);
         return newSchedule;
     } catch (error) {
+        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new schedule failed')
     }
 }
