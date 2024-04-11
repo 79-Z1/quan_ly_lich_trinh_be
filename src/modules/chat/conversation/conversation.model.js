@@ -1,11 +1,10 @@
 const { Schema, model } = require('mongoose');
-const DOCUMENT_NAME = 'message'
-const COLLECTION_NAME = 'MESSAGE';
-
+const CONVERSATION_DOCUMENT_NAME = 'Conversation';
+const CONVERSATION_COLLECTION_NAME = 'CONVERSATION';
 
 const participantSchema = new Schema({
     _id: false,
-    participantId: { type: Schema.Types.ObjectId, ref: 'User' },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     status: {
         type: String,
         enum: ['blocked', 'normal'],
@@ -25,12 +24,7 @@ const reactionSchema = new Schema({
 });
 
 const messageSchema = new Schema({
-    conservationId: { type: Schema.Types.ObjectId, ref: 'Conservation' },
-    type: {
-        type: String,
-        enum: ['private', 'group'],
-        default: 'private'
-    },
+    sender: { type: Schema.Types.ObjectId, ref: 'User' },
     text: {
         type: String
     },
@@ -45,11 +39,33 @@ const messageSchema = new Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    messageAt: {
+        type: Date,
+        default: Date.now()
+    }
+});
+
+const conversationSchema = new Schema({
+    creatorId: { type: Schema.Types.ObjectId, ref: 'User' },
+    name: {
+        type: String
+    },
+    participants: {
+        type: [participantSchema],
+        default: []
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    messages: {
+        type: [messageSchema],
+        default: []
     }
 }, {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
-    collection: COLLECTION_NAME
+    collection: CONVERSATION_COLLECTION_NAME
 });
 
-
-module.exports = model(DOCUMENT_NAME, messageSchema)
+module.exports = model(CONVERSATION_DOCUMENT_NAME, conversationSchema);
