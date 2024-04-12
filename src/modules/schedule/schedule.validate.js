@@ -1,8 +1,9 @@
 const Joi = require('joi');
 
 const memberJoi = Joi.object({
-    userId: Joi.string().required(),
-    permission: Joi.string().valid('edit', 'view').required()
+    memberId: Joi.string().required(),
+    permission: Joi.string().valid('edit', 'view').required(),
+    isActive: Joi.boolean()
 });
 
 const planJoi = Joi.object({
@@ -24,9 +25,11 @@ const createScheduleJoi = Joi.object({
     imageUrl: Joi.string().trim().allow(''),
     plans: Joi.array().items(planJoi),
     members: Joi.array().items(memberJoi),
+    status: Joi.string().valid('pending', 'in_progress', 'completed'),
     startDate: Joi.date().required(),
     endDate: Joi.date().required(),
-    total: Joi.number()
+    total: Joi.number(),
+    isActive: Joi.boolean()
 });
 
 const updateScheduleJoi = Joi.object({

@@ -190,6 +190,76 @@ paths:
           description: 'Success'
           schema:
             $ref: '#/definitions/Resource'
+  /chat:
+    get:
+      tags: [Conversation]
+      summary: 'Get all Conversation list'
+      security:
+        - Bearer: []
+        - ClientID: []
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
+    post:
+      tags: [Conversation]
+      summary: 'Create new Conversation'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Conversation'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+    patch:
+      tags: [Conversation]
+      summary: 'Update Conversation'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: Body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Conversation'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
+  /chat/send-message/{conversationId}:
+    post:
+      tags: [Conversation]
+      summary: 'Send message'
+      security:
+        - Bearer: []
+        - ClientID: []
+      parameters:
+        - name: conversationId
+          in: path
+          description: ID of the conversation where the message will be sent
+          required: true
+          type: string
+        - name: newMessage
+          in: body
+          description: Message object to be sent
+          required: true
+          schema:
+            $ref: '#/definitions/Message'
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Resource'
 
 definitions:
   Login:
@@ -225,7 +295,7 @@ definitions:
   Member:
     type: object
     properties:
-      userId:
+      memberId:
         type: string
         example: 'user id'
       permission:
@@ -251,7 +321,7 @@ definitions:
       members:
         type: array
         items:
-          type: items:
+          type: array
           $ref: '#/definitions/Member'
       total:
         type: number
@@ -290,12 +360,12 @@ definitions:
       plans:
         type: array
         items:
-          type: items:
+          type: items
           $ref: '#/definitions/Plan'
       members:
         type: array
         items:
-          type: items:
+          type: items
           $ref: '#/definitions/Member'
       total:
         type: number
@@ -315,6 +385,57 @@ definitions:
       isActive:
         type: boolean
         example: true
+  Conversation:
+    type: object
+    properties:
+      creatorId:
+        type: string
+        example: 'user id'
+      name:
+        type: string
+      participants:
+        type: array
+        items:
+          $ref: '#/definitions/Member'
+      isActive:
+        type: boolean
+        example: true
+      messages:
+        type: array
+        items:
+          $ref: '#/definitions/Message'
+  Message:
+    type: object
+    properties:
+      sender:
+        type: string
+        example: 'sender id'
+      text:
+        type: string
+      pinned:
+        type: boolean
+        example: false
+      reactions:
+        type: array
+        items:
+          $ref: '#/definitions/Reaction'
+      isActive:
+        type: boolean
+        example: true
+      messageAt:
+        type: string
+        format: date-time
+        example: '2024-03-04T08:00:00.000Z'
+  Reaction:
+    type: object
+    properties:
+      reacter:
+        type: string
+        example: 'user id'
+      emotion:
+        type: string
+        enum: ['like', 'love', 'sad', 'angry', 'happy']
+        example: 'like'
   Plan:
     type: object
     properties:

@@ -18,7 +18,6 @@ const memberSchema = new Schema({
 });
 
 const planSchema = new Schema({
-    _id: false,
     title: { type: String, required: true },
     cost: { type: Number },
     // scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
