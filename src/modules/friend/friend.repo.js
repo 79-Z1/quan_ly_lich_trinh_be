@@ -54,16 +54,22 @@ const sendFriendRequest = async ({ userId, friendId }) => {
         { new: true }
     )
 
-    const reciver = await Friend.findOneAndUpdate(
+    await Friend.findOneAndUpdate(
         { userId: toObjectId(friendId) },
         reciverUpdateSet,
         { new: true }
     )
 
-    return {
-        friendsRequestSent: sender ? sender.friendsRequestSent : null,
-        friendsRequestReceved: reciver ? reciver.friendsRequestReceved : null
-    };
+    const friendsRequestSent = await Promise.all(sender.friendsRequestSent.map(async (friend) => {
+        const result = await User.findById(toObjectId(friend.recipientId))
+        return {
+            user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+            createdAt: friend.createdAt,
+            updatedAt: friend.updatedAt
+        };
+    }))
+
+    return friendsRequestSent ? friendsRequestSent : []
 }
 
 const getFriendsReceived = async (userId) => {
@@ -149,7 +155,16 @@ const removeFriendRequest = async ({ userId, friendId }) => {
             { new: true }
         )
 
-        return sender ? sender.friendsRequestSent : null;
+        const friendsRequestSent = await Promise.all(sender.friendsRequestSent.map(async (friend) => {
+            const result = await User.findById(toObjectId(friend.recipientId))
+            return {
+                user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                createdAt: friend.createdAt,
+                updatedAt: friend.updatedAt
+            };
+        }))
+
+        return friendsRequestSent ? friendsRequestSent : [];
     } catch (error) {
         throw new BadrequestError('Remove friend request failed')
     }
@@ -182,7 +197,16 @@ const acceptFriendRequest = async ({ userId, friendId }) => {
             { new: true }
         )
 
-        return user?.friendsRequestReceved ? true : false;
+        const friendsRequestReceved = await Promise.all(user.friendsRequestReceved.map(async (friend) => {
+            const result = await User.findById(toObjectId(friend.senderId))
+            return {
+                user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                createdAt: friend.createdAt,
+                updatedAt: friend.updatedAt
+            };
+        }))
+
+        return friendsRequestReceved ? friendsRequestReceved : [];
     } catch (error) {
         throw new BadrequestError('Accept friend request failed')
     }
@@ -213,7 +237,16 @@ const rejectFriendRequest = async ({ userId, friendId }) => {
             { new: true }
         )
 
-        return user ? user.friendsRequestReceved : null;
+        const friendsRequestReceved = await Promise.all(user.friendsRequestReceved.map(async (friend) => {
+            const result = await User.findById(toObjectId(friend.senderId))
+            return {
+                user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                createdAt: friend.createdAt,
+                updatedAt: friend.updatedAt
+            };
+        }))
+
+        return friendsRequestReceved ? friendsRequestReceved : [];
     } catch (error) {
         throw new BadrequestError('Reject friend request failed')
     }
@@ -254,8 +287,16 @@ const unfriend = async ({ userId, friendId }) => {
             friendUpdateSet,
             { new: true }
         )
+        const friends = await Promise.all(user.friends.map(async (friend) => {
+            const result = await User.findById(toObjectId(friend.friendId))
+            return {
+                user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
+                createdAt: friend.createdAt,
+                updatedAt: friend.updatedAt
+            };
+        }))
 
-        return user ? user.friends : null;
+        return friends ? friends : [];
 
     } catch (error) {
         throw new BadrequestError('Unfriend failed')

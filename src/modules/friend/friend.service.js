@@ -52,14 +52,14 @@ class FriendService {
 
         if (userId === friendId) throw new BadrequestError('Can not send friend request to yourself');
 
-        const result = await sendFriendRequest({ userId, friendId })
-        if (!result?.friendsRequestSent) throw new BadrequestError('Send friend request failed');
+        const friendsRequestSent = await sendFriendRequest({ userId, friendId })
+        if (!friendsRequestSent) throw new BadrequestError('Send friend request failed');
 
         logger.info(
-            `FriendService -> sendFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestSent: result?.friendsRequestSent })
+            `FriendService -> sendFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestSent })
             }`
         )
-        return result.friendsRequestSent;
+        return friendsRequestSent;
     }
 
     static removeFriendRequest = async ({ userId, friendId }) => {
