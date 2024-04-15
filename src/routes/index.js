@@ -7,5 +7,6 @@ router.use('/auth', require('./access'));
 router.use('/friend', require('./friend'));
 router.use('/schedule', require('./schedule'));
 router.use('/chat', require('./chat'));
+router.use('/user', require('./user'));
 
 module.exports = router;

@@ -96,6 +96,16 @@ const transformFacebookProfile = async (profile) => {
     };
 }
 
+const searchUsersByName = async (name) => {
+    try {
+        const regex = new RegExp(name, 'i');
+        const users = await User.find({ name: { $regex: regex } }).select('name email avatar').lean();
+        return users ?? []
+    } catch (error) {
+        throw new BadrequestError('Find user failed')
+    }
+}
+
 module.exports = {
     findUserByname,
     findUserByEmail,
@@ -106,5 +116,6 @@ module.exports = {
     updateUserSocketId,
     findByOAuthAccount,
     transformGoogleProfile,
-    transformFacebookProfile
+    transformFacebookProfile,
+    searchUsersByName
 }

@@ -9,7 +9,8 @@ const userSchema = new Schema({
     },
     name: {
         type: String,
-        trim: true
+        trim: true,
+        index: true
     },
     avatar: {
         type: String,

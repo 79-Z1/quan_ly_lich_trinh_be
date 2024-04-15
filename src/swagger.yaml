@@ -260,6 +260,29 @@ paths:
           description: 'Success'
           schema:
             $ref: '#/definitions/Resource'
+  /user/search:
+    get:
+      tags:
+        - User
+      summary: Search users by name
+      parameters:
+        - name: name
+          in: query
+          description: The name to search for
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              metadata:
+                type: array
+                items:
+                  $ref: '#/definitions/User'
 
 definitions:
   Login:
@@ -478,6 +501,44 @@ definitions:
     properties:
       token:
         type: string
+  User:
+    type: object
+    properties:
+      socketId:
+        type: string
+        example: '123abc'
+      name:
+        type: string
+        example: 'John Doe'
+      avatar:
+        type: string
+        example: 'https://example.com/avatar.jpg'
+      password:
+        type: string
+        example: 'P@ssw0rd'
+      email:
+        type: string
+        example: 'john@example.com'
+      address:
+        type: string
+        example: '123 Main St, City'
+      phoneNumber:
+        type: string
+        example: '1234567890'
+      providerAccountId:
+        type: string
+        example: 'google:1234567890'
+      provider:
+        type: string
+        enum: ['credentials', 'google', 'facebook']
+        example: 'google'
+      authType:
+        type: string
+        enum: ['credentials', 'oauth']
+        example: 'oauth'
+      isActive:
+        type: boolean
+        example: true
   Error:
     type: object
     properties:

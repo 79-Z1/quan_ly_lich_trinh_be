@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { createUser } = require("./user.repo");
+const { createUser, searchUsersByName } = require("./user.repo");
 
 
 class UserService {
@@ -25,6 +25,23 @@ class UserService {
             }`
         )
         return user;
+    }
+
+    static searchUsersByName = async name => {
+        if (!name) throw new BadrequestError('Name is required');
+
+        logger.info(
+            `UserService -> searchUsersByName [START]\n(INPUT) ${handleObject({ name })
+            }`
+        )
+
+        const users = await searchUsersByName(name)
+
+        logger.info(
+            `UserService -> searchUsersByName [END]\n(OUTPUT) ${handleObject({ users })
+            }`
+        )
+        return users;
     }
 }
 

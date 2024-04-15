@@ -1,6 +1,5 @@
 const { logger } = require("../../common/helpers/logger");
 const { getFriendsReceived, getFriendForSocket } = require("../friend/friend.repo");
-const { findUserSocketId } = require("../user/user.repo");
 
 const friendEvent = async (socket, userId) => {
 
