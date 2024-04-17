@@ -2,6 +2,7 @@
 
 const { BadrequestError } = require("../../common/core/error.response");
 const { toObjectId } = require("../../common/utils/object.util");
+const { findUserById } = require("../user/user.repo");
 const { conversationJoi, messageJoi } = require("./chat.validate");
 const Conversation = require("./conversation/conversation.model");
 
@@ -15,7 +16,6 @@ const create = async (conversation) => {
         const newConversation = await Conversation.create(value);
         return newConversation;
     } catch (error) {
-        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new Conversation failed')
     }
 }
@@ -25,7 +25,37 @@ const get = async (conversationId) => {
         const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) });
         return conversation;
     } catch (error) {
-        console.log("🚀 ~ get ~ error:::", error);
+        throw new BadrequestError('Get conversation failed')
+    }
+}
+
+const getUserConversations = async (userId) => {
+    try {
+        const privateConversations = await Conversation.find({ 'participants.userId': userId, type: 'private' }).select('participants').lean();
+        const formatPrivateConversations = await Promise.all(privateConversations.map(async (conversation) => {
+            const friendId = conversation.participants.filter(p => p.userId !== userId)[0].userId;
+            const friend = await findUserById(friendId);
+            return {
+                _id: conversation._id,
+                name: friend.name,
+                image: friend.avatar
+            }
+        }));
+
+        const groupConversations = await Conversation.find({ 'participants.userId': userId, type: 'group' }).select('participants').lean();
+        const formatGroupConversations = await Promise.all(groupConversations.map(async (conversation) => {
+            return {
+                _id: conversation._id,
+                name: conversation.name,
+                image: conversation.image
+            }
+        }));
+
+        return {
+            privateConversations: formatPrivateConversations,
+            groupConversations: formatGroupConversations
+        }
+    } catch (error) {
         throw new BadrequestError('Get conversation failed')
     }
 }
@@ -47,7 +77,6 @@ const sendMessage = async ({ conversationId, newMessage }) => {
         )
         return conversation;
     } catch (error) {
-        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Send message failed')
     }
 }
@@ -55,5 +84,6 @@ const sendMessage = async ({ conversationId, newMessage }) => {
 module.exports = {
     get,
     create,
-    sendMessage
+    sendMessage,
+    getUserConversations
 }

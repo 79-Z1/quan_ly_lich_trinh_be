@@ -24,6 +24,13 @@ class ChatController {
         }).send(res);
     }
 
+    getUserConversations = async (req, res) => {
+        new SuccessResponse({
+            message: 'Get user conversations success',
+            metadata: await ChatService.getUserConversations(req.user.userId)
+        }).send(res);
+    }
+
     sendMessage = async (req, res) => {
         new SuccessResponse({
             message: 'Send message success',

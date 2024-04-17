@@ -26,7 +26,7 @@ const checkIsFriend = async ({ userId, friendId }) => {
     const userFriend = await Friend.findOne({ userId: toObjectId(userId) }).lean();
     const friendList = userFriend.friends;
     try {
-        return friendList.some(friend => friend._id.equals(friendId))
+        return friendList.some(friend => friend.friendId.equals(friendId))
     } catch (error) {
         throw new BadrequestError('Check is friend failed')
     }

@@ -19,7 +19,7 @@ const messageJoi = Joi.object({
 
 const conversationJoi = Joi.object({
     creatorId: Joi.string().required(),
-    name: Joi.string(),
+    name: Joi.string().optional(),
     participants: Joi.array().items(participantJoi).default([]),
     isActive: Joi.boolean().default(true),
     messages: Joi.array().items(messageJoi).default([])
