@@ -11,6 +11,7 @@ router.use(authentication)
 
 /// ---------------------------- Need check authen route ---------------------------- ///
 router.post('/send-message/:conversationId', asyncHandler(ChatController.sendMessage));
+router.get('/user-conversations', asyncHandler(ChatController.getUserConversations));
 router.get('/:conversationId', asyncHandler(ChatController.get));
 router.post('', asyncHandler(ChatController.create));
 

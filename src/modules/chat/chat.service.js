@@ -7,17 +7,16 @@ const chatRepo = require("./chat.repo");
 
 class ChatService {
 
-    static create = async ({ creatorId, participants, name, ...payload }) => {
+    static create = async ({ creatorId, participants, ...payload }) => {
         if (!creatorId) throw new BadrequestError('CreatorId is required');
         if (!participants) throw new BadrequestError('Participants is required');
-        if (!name) throw new BadrequestError('Name is required');
 
         logger.info(
-            `ChatService -> create [START]\n(INPUT) ${handleObject({ creatorId, participants, name, ...payload })
+            `ChatService -> create [START]\n(INPUT) ${handleObject({ creatorId, participants, ...payload })
             }`
         )
 
-        const newChat = await chatRepo.create({ creatorId, participants, name, ...payload })
+        const newChat = await chatRepo.create({ creatorId, participants, ...payload })
 
         logger.info(
             `ChatService -> create [END]\n(OUTPUT) ${handleObject({ newChat })
@@ -36,6 +35,18 @@ class ChatService {
 
         const conversation = await chatRepo.get(conversationId);
         return conversation;
+    }
+
+    static getUserConversations = async (userId) => {
+        if (!userId) throw new BadrequestError('UserId is required');
+
+        logger.info(
+            `ChatService -> get [START]\n(INPUT) ${handleObject({ userId })
+            }`
+        )
+
+        const conversationClassified = await chatRepo.getUserConversations(userId);
+        return conversationClassified;
     }
 
     static sendMessage = async ({ conversationId, newMessage }) => {

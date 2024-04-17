@@ -51,9 +51,17 @@ const conversationSchema = new Schema({
     name: {
         type: String
     },
+    image: {
+        type: String
+    },
     participants: {
         type: [participantSchema],
         default: []
+    },
+    type: {
+        type: String,
+        enum: ['private', 'group'],
+        default: 'private'
     },
     isActive: {
         type: Boolean,

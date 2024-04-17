@@ -236,6 +236,18 @@ paths:
           description: 'Success'
           schema:
             $ref: '#/definitions/Resource'
+  /chat/user-conversations:
+    get:
+      tags: [Conversation]
+      summary: 'Get all user conversation list'
+      security:
+        - Bearer: []
+        - ClientID: []
+      responses:
+        '200':
+          description: 'Success'
+          schema:
+            $ref: '#/definitions/Token'
   /chat/send-message/{conversationId}:
     post:
       tags: [Conversation]

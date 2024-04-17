@@ -32,7 +32,7 @@ const findUserById = async (id) => {
     try {
         return await User.findById(
             toObjectId(id)
-        ).lean()
+        )
     } catch (error) {
         throw new BadrequestError('Find user failed')
     }
@@ -106,6 +106,15 @@ const searchUsersByName = async (name) => {
     }
 }
 
+const getUserName = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        return user.name
+    } catch (error) {
+        throw new BadrequestError('Get user name failed')
+    }
+}
+
 module.exports = {
     findUserByname,
     findUserByEmail,
@@ -117,5 +126,6 @@ module.exports = {
     findByOAuthAccount,
     transformGoogleProfile,
     transformFacebookProfile,
-    searchUsersByName
+    searchUsersByName,
+    getUserName
 }
