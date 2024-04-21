@@ -22,7 +22,6 @@ const planSchema = new Schema({
     cost: { type: Number },
     // scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
     startAt: { type: Date, required: true },
-    endAt: { type: Date, required: true },
     address: { type: String, required: true },
     location: { lat: Number, lng: Number },
     isActive: {

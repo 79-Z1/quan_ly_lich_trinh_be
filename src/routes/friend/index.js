@@ -15,7 +15,7 @@ router.patch('/remove-request', asyncHandler(friendController.removeFriendReques
 router.patch('/accept', asyncHandler(friendController.acceptFriendRequest));
 router.patch('/reject', asyncHandler(friendController.rejectFriendRequest));
 router.patch('/unfriend', asyncHandler(friendController.unfriend));
+router.get('/friend-list', asyncHandler(friendController.getFriendListByUserId));
 router.get('', asyncHandler(friendController.getFriendForFriendPage));
-// router.get('', asyncHandler(friendController.getFriendListByUserId));
 
 module.exports = router;

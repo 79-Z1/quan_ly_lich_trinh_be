@@ -7,13 +7,17 @@ const connection = async (socket) => {
     logger.info(`------- A user connected! || id: ${socket.id} -------`);
 
     await socket.on('set-user-socket-id', async ({ userId }) => {
-        updateUserSocketId(userId, socket.id);
-        logger.info(`User ${userId} ==> socket ${socket.id}`);
-        //# HANDLE FRIEND EVENT
-        await friendEvent(socket, userId);
+        try {
+            updateUserSocketId(userId, socket.id);
+            logger.info(`User ${userId} ==> socket ${socket.id}`);
+            //# HANDLE FRIEND EVENT
+            await friendEvent(socket, userId);
 
-        //# HANDLE CHAT EVENT
-        await chatEvent(socket, userId);
+            //# HANDLE CHAT EVENT
+            await chatEvent(socket, userId);
+        } catch (error) {
+            logger.error(error);
+        }
     });
 
     //# HANDLE DISCONNECT

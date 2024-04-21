@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const memberJoi = Joi.object({
     memberId: Joi.string().required(),
-    permission: Joi.string().valid('edit', 'view').required(),
+    permission: Joi.string().valid('edit', 'view').default('view'),
     isActive: Joi.boolean()
 });
 
@@ -10,7 +10,6 @@ const planJoi = Joi.object({
     title: Joi.string().required(),
     cost: Joi.number(),
     startAt: Joi.date().required(),
-    endAt: Joi.date().required(),
     address: Joi.string().required(),
     location: Joi.object({
         lat: Joi.number().required(),

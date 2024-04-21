@@ -24,6 +24,10 @@ const getInfoData = ({ fields = [], object = {} }) => {
     return _.pick(object, fields)
 }
 
+const getInfoDataWithout = ({ fields = [], object = {} }) => {
+    return _.omit(object, fields);
+}
+
 const generatePublicPrivateToken = () => {
     try {
         const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
@@ -102,5 +106,6 @@ module.exports = {
     toObjectId,
     handleObject,
     checkUndefinedFinanceItem,
-    typeOf
+    typeOf,
+    getInfoDataWithout
 }

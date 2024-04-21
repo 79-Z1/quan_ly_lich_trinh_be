@@ -12,7 +12,7 @@ const getFriendListByUserId = async (userId) => {
 
         const friendList = await Promise.all(user.friends.map(async (friend) => {
             const userFriend = await User.findById(toObjectId(friend.friendId))
-                .select(getUnSelectData(['__v', 'createdAt', 'updatedAt', 'password']))
+                .select(getUnSelectData(['__v', 'createdAt', 'updatedAt', 'password', 'providerAccountId', 'provider', 'isActive', 'authType', 'socketId']))
             return userFriend
         }));
 
