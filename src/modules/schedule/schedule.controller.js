@@ -14,6 +14,13 @@ class ScheduleController {
         }).send(res);
     }
 
+    getUserCalendar = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Get user calendar success',
+            metadata: await ScheduleService.getUserCalendar(req.user.userId)
+        }).send(res);
+    }
+
     create = async (req, res, next) => {
         new SuccessResponse({
             message: 'Create schedule success',
@@ -31,6 +38,13 @@ class ScheduleController {
                 ownerId: req.user.userId,
                 ...req.body
             })
+        }).send(res);
+    }
+
+    getById = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Get schedule by id success',
+            metadata: await ScheduleService.getById(req.params.scheduleId)
         }).send(res);
     }
 }

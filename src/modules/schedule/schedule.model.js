@@ -20,7 +20,10 @@ const memberSchema = new Schema({
 const planSchema = new Schema({
     title: { type: String, required: true },
     cost: { type: Number },
-    // scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
+    imageUrl: {
+        type: String,
+        trim: true
+    },
     startAt: { type: Date, required: true },
     address: { type: String, required: true },
     location: { lat: Number, lng: Number },

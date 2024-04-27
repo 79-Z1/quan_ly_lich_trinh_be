@@ -8,6 +8,7 @@ const memberJoi = Joi.object({
 
 const planJoi = Joi.object({
     title: Joi.string().required(),
+    imageUrl: Joi.string().trim().allow(''),
     cost: Joi.number(),
     startAt: Joi.date().required(),
     address: Joi.string().required(),
