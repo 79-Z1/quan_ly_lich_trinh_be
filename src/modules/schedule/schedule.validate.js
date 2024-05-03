@@ -7,6 +7,7 @@ const memberJoi = Joi.object({
 });
 
 const planJoi = Joi.object({
+    _id: Joi.string(),
     title: Joi.string().required(),
     imageUrl: Joi.string().trim().allow(''),
     cost: Joi.number(),
@@ -15,7 +16,8 @@ const planJoi = Joi.object({
     location: Joi.object({
         lat: Joi.number().required(),
         lng: Joi.number().required()
-    })
+    }),
+    isActive: Joi.boolean().optional()
 });
 
 const createScheduleJoi = Joi.object({
@@ -34,14 +36,16 @@ const createScheduleJoi = Joi.object({
 
 const updateScheduleJoi = Joi.object({
     ownerId: Joi.string().required(),
-    topic: Joi.string().trim(),
-    description: Joi.string().trim(),
-    plans: Joi.array().items(planJoi),
-    members: Joi.array().items(memberJoi),
-    status: Joi.string().valid('pending', 'in_progress', 'completed'),
+    topic: Joi.string().trim().optional(),
+    imageUrl: Joi.string().trim().allow(''),
+    description: Joi.string().trim().optional(),
+    plans: Joi.array().items(planJoi).optional(),
+    total: Joi.number().optional(),
+    members: Joi.array().items(memberJoi).optional(),
+    status: Joi.string().valid('pending', 'in_progress', 'completed').optional(),
     startDate: Joi.date(),
     endDate: Joi.date(),
-    isActive: Joi.boolean()
+    isActive: Joi.boolean().optional()
 });
 
 module.exports = {

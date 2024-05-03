@@ -81,9 +81,25 @@ const sendMessage = async ({ conversationId, newMessage }) => {
     }
 }
 
+const findConversationByParticipants = async (userId1, userId2) => {
+    try {
+        const conversation = await Conversation.findOne({
+            $and: [
+                { 'participants.userId': userId1 },
+                { 'participants.userId': userId2 },
+                { 'type': 'private' }
+            ]
+        });
+        return conversation;
+    } catch (error) {
+        throw new BadrequestError('Find conversation by participants failed');
+    }
+}
+
 module.exports = {
     get,
     create,
     sendMessage,
-    getUserConversations
+    getUserConversations,
+    findConversationByParticipants
 }

@@ -11,6 +11,13 @@ class UserController {
         }).send(res);
     }
 
+    getUserProfile = async (req, res) => {
+        new SuccessResponse({
+            message: 'Get friend profile successfully',
+            metadata: await UserService.getUserProfile(req.user.userId, req.params.userId)
+        }).send(res);
+    }
+
 }
 
 module.exports = new UserController();

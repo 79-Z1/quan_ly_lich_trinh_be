@@ -1,7 +1,8 @@
 'use strict';
 
 const { BadrequestError } = require("../../common/core/error.response");
-const { toObjectId } = require("../../common/utils/object.util");
+const { toObjectId, getInfoDataWithout } = require("../../common/utils/object.util");
+const Friend = require("../friend/friend.model");
 const User = require("./user.model");
 
 const findUserByname = async (name) => {
@@ -9,6 +10,49 @@ const findUserByname = async (name) => {
         return await User.findOne({ name }).lean()
     } catch (error) {
         throw new BadrequestError('Find user failed')
+    }
+}
+
+const getUserProfile = async (yourId, userId) => {
+    try {
+        const user = await User.findOne({ _id: toObjectId(userId) }).lean();
+        const userFriend = await Friend.findOne({ userId: toObjectId(userId) });
+
+        const friendIds = userFriend.friends.map(friend => friend.friendId.toString());
+        const requestSentIds = userFriend.friendsRequestSent.map(friend => friend.recipientId.toString());
+        const requestReceivedIds = userFriend.friendsRequestReceved.map(friend => friend.senderId.toString());
+
+        if (yourId === userId) {
+            return {
+                user: getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'provider', 'isActive', 'authType'], object: user }),
+                status: 'self'
+            }
+        }
+        if (friendIds.includes(yourId)) {
+            return {
+                user: getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'provider', 'isActive', 'authType'], object: user }),
+                status: 'friend'
+            }
+        }
+        if (requestReceivedIds.includes(yourId)) {
+            return {
+                user: getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'provider', 'isActive', 'authType'], object: user }),
+                status: 'request-sent'
+            }
+        }
+        if (requestSentIds.includes(yourId)) {
+            return {
+                user: getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'provider', 'isActive', 'authType'], object: user }),
+                status: 'request-received'
+            }
+        }
+
+        return {
+            user: getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'provider', 'isActive', 'authType'], object: user }),
+            status: 'none'
+        }
+    } catch (error) {
+        throw new BadrequestError('Get profile failed')
     }
 }
 
@@ -127,5 +171,6 @@ module.exports = {
     transformGoogleProfile,
     transformFacebookProfile,
     searchUsersByName,
-    getUserName
+    getUserName,
+    getUserProfile
 }

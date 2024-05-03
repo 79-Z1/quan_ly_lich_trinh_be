@@ -62,6 +62,8 @@ const createAccessToken = async (payload, publicKey, privateKey) => {
 const authentication = asyncHandler(async (req, res, next) => {
     //1. check userid
     const userId = req.headers[HEADER.CLIENT_ID];
+    if (!userId) throw new AuthFailurError('User Id is required');
+
     const accessToken = req.headers[HEADER.AUTHORIZATION];
     //2. get access token
     const keyStore = await findByUserId(userId);
@@ -70,7 +72,6 @@ const authentication = asyncHandler(async (req, res, next) => {
         }`
     )
 
-    if (!userId) throw new AuthFailurError('User Id is required');
     if (!keyStore) throw new AuthFailurError('User Id is wrong');
 
     if (req.headers[HEADER.REFRESHTOKEN]) {

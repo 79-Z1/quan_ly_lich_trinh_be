@@ -80,14 +80,13 @@ class ScheduleService {
             }`
         )
 
-        const schedule = await update({ ownerId, ...payload })
-        if (!schedule) throw new BadrequestError('Update schedule failed');
+        const scheduleUpdated = await update({ ownerId, ...payload })
 
         logger.info(
-            `ScheduleService -> update [END]\n(OUTPUT) ${handleObject({ schedule })
+            `ScheduleService -> update [END]\n(OUTPUT) ${handleObject({ scheduleUpdated })
             }`
         )
-        return schedule;
+        return scheduleUpdated;
     }
 }
 

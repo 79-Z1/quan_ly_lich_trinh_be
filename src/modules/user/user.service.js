@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { createUser, searchUsersByName } = require("./user.repo");
+const { createUser, searchUsersByName, getUserProfile } = require("./user.repo");
 
 
 class UserService {
@@ -25,6 +25,21 @@ class UserService {
             }`
         )
         return user;
+    }
+
+    static getUserProfile = async (userId, friendId) => {
+        logger.info(
+            `UserService -> getUserProfile [START]\n(INPUT) ${handleObject({ userId, friendId })
+            }`
+        )
+        if (!friendId) throw new BadrequestError('Friend id is required');
+
+        const profile = await getUserProfile(userId, friendId)
+        logger.info(
+            `UserService -> getUserProfile [END]\n(OUTPUT) ${handleObject({ profile })
+            }`
+        )
+        return profile
     }
 
     static searchUsersByName = async name => {

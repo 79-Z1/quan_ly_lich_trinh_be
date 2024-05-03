@@ -8,7 +8,12 @@ const { toObjectId, getUnSelectData } = require('../../common/utils/object.util.
 
 const getAll = async (userId) => {
     try {
-        return await Schedule.find({ isActive: true, ownerId: userId }).lean();
+        const schedules = await Schedule.find({ isActive: true, ownerId: userId }).lean();
+        await Promise.all(schedules.map(async (schedule) => {
+            schedule.members = await getMemberList(schedule.members);
+            return schedule;
+        }));
+        return schedules
     } catch (error) {
         throw new BadrequestError('Get all schedule failed')
     }
@@ -70,24 +75,22 @@ const create = async (schedule) => {
         const newSchedule = await Schedule.create(value);
         return newSchedule;
     } catch (error) {
-        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new schedule failed')
     }
 }
 
 const update = async (schedule) => {
+    const { _id, ...payload } = schedule;
     try {
-        const { error, value } = updateScheduleJoi.validate(schedule);
+        const { error, value } = updateScheduleJoi.validate(payload);
         if (error) {
             throw new BadrequestError(error.message);
         }
 
-        const updatedSchedule = await Schedule.findByIdAndUpdate(schedule._id, {
-            value
-        });
+        const updatedSchedule = await Schedule.findOneAndUpdate({ _id }, value, { new: true });
         return updatedSchedule;
     } catch (error) {
-        throw new BadrequestError('Create new schedule failed')
+        throw new BadrequestError('Update schedule failed')
     }
 }
 

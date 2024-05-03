@@ -3,6 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
+const { findConversationByParticipants } = require("../chat/chat.repo");
 const ChatService = require("../chat/chat.service");
 const { sendFriendRequest, removeFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriend, getFriendListByUserId, getFriendForFriendPage } = require("./friend.repo");
 
@@ -96,7 +97,10 @@ class FriendService {
         const friendsRequestReceved = await acceptFriendRequest({ userId, friendId })
         if (!friendsRequestReceved) throw new BadrequestError('Accept friend request failed');
 
-        await ChatService.create({ creatorId: userId, participants: [{ userId }, { userId: friendId }] });
+        const isExistConversation = await findConversationByParticipants(userId, friendId);
+        if (!isExistConversation) {
+            await ChatService.create({ creatorId: userId, participants: [{ userId }, { userId: friendId }] });
+        }
 
         logger.info(
             `FriendService -> acceptFriendRequest [END]\n(OUTPUT) ${handleObject({ friendsRequestReceved })
