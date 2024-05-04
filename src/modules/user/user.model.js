@@ -47,6 +47,13 @@ const userSchema = new Schema({
             message: '{VALUE} is not a valid phone number',
         }
     },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other']
+    },
+    dateOfBirth: {
+        type: Date
+    },
     providerAccountId: {
         type: String
     },

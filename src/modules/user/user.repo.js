@@ -13,6 +13,15 @@ const findUserByname = async (name) => {
     }
 }
 
+const getUserSettings = async (userId) => {
+    try {
+        const user = await User.findOne({ _id: toObjectId(userId) }).lean();
+        return getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'isActive'], object: user });
+    } catch (error) {
+        throw new BadrequestError('Get user settings failed')
+    }
+}
+
 const getUserProfile = async (yourId, userId) => {
     try {
         const user = await User.findOne({ _id: toObjectId(userId) }).lean();
@@ -159,6 +168,14 @@ const getUserName = async (userId) => {
     }
 }
 
+const updateUser = async (userId, data) => {
+    try {
+        return await User.findByIdAndUpdate(userId, data, { new: true })
+    } catch (error) {
+        throw new BadrequestError('Update user failed')
+    }
+}
+
 module.exports = {
     findUserByname,
     findUserByEmail,
@@ -172,5 +189,7 @@ module.exports = {
     transformFacebookProfile,
     searchUsersByName,
     getUserName,
-    getUserProfile
+    getUserProfile,
+    getUserSettings,
+    updateUser
 }

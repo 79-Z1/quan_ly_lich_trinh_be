@@ -18,6 +18,20 @@ class UserController {
         }).send(res);
     }
 
+    getUserSettings = async (req, res) => {
+        new SuccessResponse({
+            message: 'Get user settings successfully',
+            metadata: await UserService.getUserSettings(req.user.userId)
+        }).send(res);
+    }
+
+    updateUser = async (req, res) => {
+        new SuccessResponse({
+            message: 'Update user successfully',
+            metadata: await UserService.updateUser(req.user.userId, req.body)
+        }).send(res);
+    }
+
 }
 
 module.exports = new UserController();

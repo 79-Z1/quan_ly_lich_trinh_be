@@ -12,6 +12,8 @@ router.get('/search', asyncHandler(UserController.searchUsersByName));
 /// AUTHENTICATION
 router.use(authentication)
 /// ---------------------------- Need check authen route ---------------------------- ///
+router.get('/setting', asyncHandler(UserController.getUserSettings));
 router.get('/:userId', asyncHandler(UserController.getUserProfile));
+router.patch('', asyncHandler(UserController.updateUser));
 
 module.exports = router;

@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { createUser, searchUsersByName, getUserProfile } = require("./user.repo");
+const { createUser, searchUsersByName, getUserProfile, getUserSettings, updateUser } = require("./user.repo");
 
 
 class UserService {
@@ -57,6 +57,32 @@ class UserService {
             }`
         )
         return users;
+    }
+
+    static getUserSettings = async (userId) => {
+        logger.info(
+            `UserService -> getUserSettings [START]\n(INPUT) ${handleObject({ userId })
+            }`
+        )
+        const settings = await getUserSettings(userId)
+        logger.info(
+            `UserService -> getUserSettings [END]\n(OUTPUT) ${handleObject({ settings })
+            }`
+        )
+        return settings
+    }
+
+    static updateUser = async (userId, data) => {
+        logger.info(
+            `UserService -> updateUser [START]\n(INPUT) ${handleObject({ userId, data })
+            }`
+        )
+        const user = await updateUser(userId, data)
+        logger.info(
+            `UserService -> updateUser [END]\n(OUTPUT) ${handleObject({ user })
+            }`
+        )
+        return user
     }
 }
 
