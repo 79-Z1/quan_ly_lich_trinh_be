@@ -111,7 +111,7 @@ class AccessService {
             }`
         )
         return {
-            user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address'], object: foundUser }),
+            user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address', 'role'], object: foundUser }),
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             rememberMe

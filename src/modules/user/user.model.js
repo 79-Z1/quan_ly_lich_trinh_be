@@ -67,6 +67,11 @@ const userSchema = new Schema({
         enum: ['credentials', 'oauth'],
         default: 'credentials'
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
     isActive: {
         type: Boolean,
         default: true
