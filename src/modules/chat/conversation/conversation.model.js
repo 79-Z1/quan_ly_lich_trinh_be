@@ -51,7 +51,7 @@ const conversationSchema = new Schema({
     name: {
         type: String
     },
-    image: {
+    imageUrl: {
         type: String
     },
     participants: {

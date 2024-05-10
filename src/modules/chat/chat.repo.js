@@ -2,6 +2,7 @@
 
 const { BadrequestError } = require("../../common/core/error.response");
 const { toObjectId } = require("../../common/utils/object.util");
+const userModel = require("../user/user.model");
 const { findUserById } = require("../user/user.repo");
 const { conversationJoi, messageJoi } = require("./chat.validate");
 const Conversation = require("./conversation/conversation.model");
@@ -23,7 +24,11 @@ const create = async (conversation) => {
 const get = async (conversationId) => {
     try {
         const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) });
-        return conversation;
+        const formatConversation = await conversation.messages.map(async message => {
+            message.user = await userModel.findById(message.sender).select('imageUrl _id name').lean();
+            return message;
+        })
+        return formatConversation;
     } catch (error) {
         throw new BadrequestError('Get conversation failed')
     }
@@ -38,16 +43,16 @@ const getUserConversations = async (userId) => {
             return {
                 _id: conversation._id,
                 name: friend.name,
-                image: friend.avatar
+                imageUrl: friend.avatar
             }
         }));
 
-        const groupConversations = await Conversation.find({ 'participants.userId': userId, type: 'group' }).select('participants').lean();
+        const groupConversations = await Conversation.find({ 'participants.userId': userId, type: 'group' }).select('participants name imageUrl').lean();
         const formatGroupConversations = await Promise.all(groupConversations.map(async (conversation) => {
             return {
                 _id: conversation._id,
                 name: conversation.name,
-                image: conversation.image
+                imageUrl: conversation.imageUrl
             }
         }));
 
@@ -96,10 +101,24 @@ const findConversationByParticipants = async (userId1, userId2) => {
     }
 }
 
+const createGroupChat = async (conversation) => {
+    try {
+        const { error, value } = conversationJoi.validate(conversation);
+        if (error) {
+            throw new BadrequestError(error.message);
+        }
+        const newConversation = await Conversation.create(value);
+        return newConversation;
+    } catch (error) {
+        throw new BadrequestError('Create new Group Chat failed')
+    }
+}
+
 module.exports = {
     get,
     create,
     sendMessage,
     getUserConversations,
-    findConversationByParticipants
+    findConversationByParticipants,
+    createGroupChat
 }

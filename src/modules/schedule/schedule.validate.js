@@ -12,6 +12,7 @@ const planJoi = Joi.object({
     imageUrl: Joi.string().trim().allow(''),
     cost: Joi.number(),
     startAt: Joi.date().required(),
+    endAt: Joi.date().required(),
     address: Joi.string().required(),
     location: Joi.object({
         lat: Joi.number().required(),

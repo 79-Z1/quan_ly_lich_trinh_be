@@ -3,6 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
+const { Schedule } = require("../schedule/schedule.model");
 const chatRepo = require("./chat.repo");
 
 class ChatService {
@@ -23,6 +24,36 @@ class ChatService {
             }`
         )
         return newChat;
+    }
+
+    static createGroupChat = async ({ creatorId, name, scheduleId }) => {
+        if (!creatorId) throw new BadrequestError('CreatorId is required');
+        if (!name) throw new BadrequestError('Name is required');
+        if (!scheduleId) throw new BadrequestError('scheduleId is required');
+
+        logger.info(
+            `ChatService -> createGroupChat [START]\n(INPUT) ${handleObject({ creatorId, name, scheduleId })
+            }`
+        )
+
+        const schedule = await Schedule.findById(scheduleId).lean();
+        if (schedule?.members.length < 2) {
+            throw new BadrequestError('Group chat must at least 2 participants')
+        }
+
+        const formatParticipants = [];
+        formatParticipants.push({ userId: creatorId });
+        schedule.members.map(member => {
+            formatParticipants.push({ userId: member.memberId.toString() })
+        });
+
+        const newConversation = await chatRepo.createGroupChat({ creatorId, name, participants: formatParticipants, type: 'group' })
+
+        logger.info(
+            `ChatService -> createGroupChat [END]\n(OUTPUT) ${handleObject({ newConversation })
+            }`
+        )
+        return newConversation;
     }
 
     static get = async ({ conversationId }) => {

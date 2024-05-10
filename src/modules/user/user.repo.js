@@ -16,7 +16,7 @@ const findUserByname = async (name) => {
 const getUserSettings = async (userId) => {
     try {
         const user = await User.findOne({ _id: toObjectId(userId) }).lean();
-        return getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'isActive'], object: user });
+        return getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'isActive', 'createdAt', 'updatedAt', 'role'], object: user });
     } catch (error) {
         throw new BadrequestError('Get user settings failed')
     }

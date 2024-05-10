@@ -1,9 +1,11 @@
 const { BadrequestError } = require('../../common/core/error.response');
 const { Schedule, Member } = require('./schedule.model');
 const { createScheduleJoi, updateScheduleJoi } = require('./schedule.validate.js');
-const { compareDays } = require('../../common/utils/date.util');
+const { compareDays, ltOrEqDays, getStatusByTime, isLessThanDays, isGreaterThanDays, formatVNDate } = require('../../common/utils/date.util');
 const User = require('../user/user.model.js');
 const { toObjectId, getUnSelectData } = require('../../common/utils/object.util.js');
+const { getUserSettings } = require('../user/user.repo.js');
+const { orderBy } = require('lodash');
 
 
 const getAll = async (userId) => {
@@ -23,14 +25,18 @@ const getUserCalendar = async (userId) => {
     try {
         const schedules = await Schedule.find({ isActive: true, ownerId: userId }).lean();
         const calendars = schedules.map((schedule) => {
-            return {
-                id: schedule._id,
-                title: schedule.topic,
-                start: schedule.startDate,
-                end: schedule.endDate
-            }
+            const plans = schedule.plans.map((item) => {
+
+                return {
+                    id: schedule._id.toString(),
+                    title: item.title,
+                    start: item.startAt,
+                    end: item.endAt
+                }
+            });
+            return [...plans]
         })
-        return calendars
+        return calendars.flat()
     } catch (error) {
         throw new BadrequestError('Get user calendar failed')
     }
@@ -56,7 +62,6 @@ const getMemberList = async (members) => {
 
         return memberList ? memberList : []
     } catch (error) {
-        console.log("🚀 ~ getMemberList ~ error:::", error);
         throw new BadrequestError('Get member list failed')
     }
 }
@@ -70,6 +75,16 @@ const create = async (schedule) => {
 
         if (compareDays(value.startDate, new Date())) {
             value.status = 'in_progress'
+        }
+        if (value?.plans) {
+            value?.plans.map((plan, index) => {
+                if (!!value?.plans[index + 1]) {
+                    plan.endAt = value?.plans[index + 1].startAt;
+                } else {
+                    plan.endAt = value?.endDate;
+                }
+                return plan;
+            })
         }
 
         const newSchedule = await Schedule.create(value);
@@ -128,7 +143,41 @@ const editPermissions = async ({ friendId, scheduleId }) => {
     }
 }
 
+const getDetailSchedule = async (scheduleId) => {
+    try {
+        const schedule = await Schedule.findById(scheduleId).lean();
+        schedule.plans = orderBy(schedule.plans, ['startAt'], ['asc']);
+        const formatPlans = schedule.plans.map(plan => {
+            let status;
+            if (isLessThanDays(plan.startAt, new Date())) {
+                status = 'done';
+            } else if (isGreaterThanDays(plan.startAt, new Date())) {
+                status = 'in_coming';
+            } else {
+                status = getStatusByTime(plan.startAt, plan.endAt)
+            }
+            return {
+                ...plan,
+                status
+            }
+        })
+        const countDoneSchedule = formatPlans.filter((plan) => plan.status === 'done').length;
+        const progress = {
+            percent: Math.round(countDoneSchedule / schedule.plans.length * 100),
+            part: `${countDoneSchedule} / ${schedule.plans.length}`
+        }
+        schedule.plans = formatPlans;
+        schedule.progress = progress;
+        const [formatMembers, owner] = await Promise.all([getMemberList(schedule.members), getUserSettings(schedule.ownerId)]);
+        schedule.members = formatMembers
+        schedule.members.unshift(owner);
+        return schedule;
+    } catch (error) {
+        throw new BadrequestError('Get detail schedule failed')
+    }
+}
+
 module.exports = {
     create, update, addFriendToSchedule, editPermissions,
-    getAll, getById, getUserCalendar
+    getAll, getById, getUserCalendar, getDetailSchedule
 };

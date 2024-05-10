@@ -13,7 +13,8 @@ router.use(authentication)
 router.post('', asyncHandler(scheduleController.create));
 router.patch('', asyncHandler(scheduleController.update));
 router.get('/calendar', asyncHandler(scheduleController.getUserCalendar));
-router.get('/:scheduleId', asyncHandler(scheduleController.getById));
+router.get('/edit/:scheduleId', asyncHandler(scheduleController.getById));
+router.get('/:scheduleId', asyncHandler(scheduleController.getDetailSchedule));
 router.get('', asyncHandler(scheduleController.getAll));
 
 module.exports = router;

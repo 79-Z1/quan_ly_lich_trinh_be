@@ -22,7 +22,9 @@ const conversationJoi = Joi.object({
     name: Joi.string().optional(),
     participants: Joi.array().items(participantJoi).default([]),
     isActive: Joi.boolean().default(true),
-    messages: Joi.array().items(messageJoi).default([])
+    messages: Joi.array().items(messageJoi).default([]),
+    type: Joi.string().valid('private', 'group').default('private'),
+    image: Joi.string().optional()
 });
 
 module.exports = {

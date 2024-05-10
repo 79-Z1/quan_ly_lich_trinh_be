@@ -13,6 +13,7 @@ router.use(authentication)
 router.post('/send-message/:conversationId', asyncHandler(ChatController.sendMessage));
 router.get('/user-conversations', asyncHandler(ChatController.getUserConversations));
 router.get('/:conversationId', asyncHandler(ChatController.get));
+router.post('/group', asyncHandler(ChatController.createGroupChat));
 router.post('', asyncHandler(ChatController.create));
 
 module.exports = router;

@@ -41,6 +41,16 @@ class ChatController {
         }).send(res);
     }
 
+    createGroupChat = async (req, res) => {
+        new SuccessResponse({
+            message: 'Create group chat success',
+            metadata: await ChatService.createGroupChat({
+                creatorId: req.user.userId,
+                ...req.body
+            })
+        }).send(res);
+    }
+
 }
 
 module.exports = new ChatController();

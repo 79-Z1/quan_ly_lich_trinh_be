@@ -47,6 +47,13 @@ class ScheduleController {
             metadata: await ScheduleService.getById(req.params.scheduleId)
         }).send(res);
     }
+
+    getDetailSchedule = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Get detail schedule success',
+            metadata: await ScheduleService.getDetailSchedule(req.params.scheduleId)
+        }).send(res);
+    }
 }
 
 module.exports = new ScheduleController();

@@ -6,7 +6,7 @@ const chatEvent = async (socket, userId) => {
     try {
         socket.on('join-conversation', async ({ conversationId }) => {
             socket.join(conversationId);
-            console.log("🚀 ~ socket.on ~ conversationId:::", conversationId);
+            console.log("🚀😊😊😊😊 ~ socket.on ~ conversationId:::", conversationId);
         });
         socket.on('send-message', async ({ conversationId, message }) => {
             try {
