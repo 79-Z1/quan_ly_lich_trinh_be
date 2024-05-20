@@ -11,5 +11,6 @@ router.use('/user', require('./user'));
 router.use('/noti', require('./noti'));
 router.use('/admin', require('./admin'));
 router.use('/gemini', require('./gemini'));
+router.use('/reset-password', require('./reset-password'));
 
 module.exports = router;
