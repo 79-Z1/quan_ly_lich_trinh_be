@@ -99,7 +99,7 @@ class FriendService {
 
         const isExistConversation = await findConversationByParticipants(userId, friendId);
         if (!isExistConversation) {
-            await ChatService.create({ creatorId: userId, participants: [{ userId }, { userId: friendId }] });
+            await ChatService.create({ creatorId: userId, participants: [{ user: userId }, { user: friendId }] });
         }
 
         logger.info(

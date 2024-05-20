@@ -92,6 +92,18 @@ class ChatService {
         const conversation = await chatRepo.sendMessage({ conversationId, newMessage });
         return conversation;
     }
+
+    static updateMessageStatusToSeen = async (conversationId, messageIds) => {
+        if (!conversationId) throw new BadrequestError('conversationId is required');
+        if (!messageIds) throw new BadrequestError('MessageIds is required');
+
+        logger.info(
+            `ChatService -> updateMessageStatusToSeen [START]\n(INPUT) ${handleObject({ conversationId, messageIds })
+            }`
+        )
+        const conversation = await chatRepo.updateMessageStatusToSeen({ conversationId, messageIds });
+        return conversation;
+    }
 }
 
 module.exports = ChatService;

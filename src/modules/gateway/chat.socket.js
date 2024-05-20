@@ -1,21 +1,22 @@
 const { logger } = require("../../common/helpers/logger");
-const { sendMessage } = require("../chat/chat.repo");
+const { sendMessage, getMessages } = require("../chat/chat.repo");
 
-const chatEvent = async (socket, userId) => {
+const chatEvent = async (socket, chatNamespace) => {
 
     try {
         socket.on('join-conversation', async ({ conversationId }) => {
             socket.join(conversationId);
-            console.log("🚀😊😊😊😊 ~ socket.on ~ conversationId:::", conversationId);
+            const messages = await getMessages(conversationId);
+            chatNamespace.in(conversationId).emit('update-messages', { messages: messages })
         });
-        socket.on('send-message', async ({ conversationId, message }) => {
+        socket.on('send-message', async ({ userId, conversationId, message }) => {
             try {
                 const newMessage = {
                     sender: userId,
                     text: message
                 }
-                const conversation = await sendMessage({ conversationId: conversationId, newMessage })
-                global._io.in(conversation._id.toString()).emit('update-messages', { messages: conversation.messages })
+                const messages = await sendMessage({ conversationId: conversationId, newMessage })
+                chatNamespace.in(conversationId).emit('update-messages', { messages: messages })
             } catch (error) {
                 console.log(error);
             }

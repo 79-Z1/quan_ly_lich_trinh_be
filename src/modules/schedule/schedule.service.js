@@ -14,7 +14,6 @@ class ScheduleService {
             `ScheduleService -> getAll [START]\n(INPUT) ${handleObject({ userId })
             }`
         )
-
         const schedules = await getAll(userId);
         logger.info(
             `ScheduleService -> getAll [END]\n(INPUT) ${handleObject({ schedules })

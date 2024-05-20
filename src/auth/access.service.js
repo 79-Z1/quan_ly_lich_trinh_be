@@ -11,6 +11,8 @@ const KeyTokenService = require("../modules/key-token/key-token.service");
 const { updateKeyToken } = require("../modules/key-token/keytoken.repo");
 const { handleObject, generatePublicPrivateToken, getInfoData, isStrongPassword } = require("../common/utils");
 const { AuthFailurError, ConflicRequestError } = require("../common/core/error.response");
+const conversationModel = require("../modules/chat/conversation/conversation.model");
+const chatRepo = require("../modules/chat/chat.repo");
 
 
 
@@ -143,9 +145,16 @@ class AccessService {
         } else {
             // Create new user from Google OAuth account
             user = await this.createNewUserFromOAuthProfile('google', googleProfile);
-            await Friend.create({
-                userId: user._id
-            })
+            await Promise.all(
+                Friend.create({
+                    userId: user._id
+                }),
+                chatRepo.create({
+                    participants: [{ user: user._id.toString() }],
+                    creatorId: user._id.toString(),
+                    type: 'ai'
+                })
+            )
         }
 
         // create privateKey, publicKey and save public key
@@ -233,9 +242,16 @@ class AccessService {
         });
 
         if (!newUser) throw new AuthFailurError('Sign up failed')
-        await Friend.create({
-            userId: newUser._id
-        })
+        await Promise.all([
+            Friend.create({
+                userId: newUser._id
+            }),
+            chatRepo.create({
+                participants: [{ user: newUser._id.toString() }],
+                creatorId: newUser._id.toString(),
+                type: 'ai'
+            })
+        ])
         return true;
     }
 }

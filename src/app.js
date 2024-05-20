@@ -33,6 +33,7 @@ const { checkOverload } = require('./common/helpers/check.connect');
 const { logger } = require('./common/helpers/logger');
 const { NotFoundError } = require('./common/core/error.response');
 const { connection } = require('./modules/gateway/connection.gateway');
+const { chatEvent } = require('./modules/gateway/chat.socket');
 const swaggerDocument = YAML.load(`${__dirname}/swagger.yaml`);
 // checkOverload();
 
@@ -43,6 +44,12 @@ app.use('/api', require('./routes'));
 global._io = io;
 //# INIT SOCKET
 global._io.on('connection', connection);
+
+//# HANDLE CHAT EVENT
+const chatNamespace = io.of('/chat');
+chatNamespace.on('connection', async (socket) => {
+    await chatEvent(socket, chatNamespace);
+});
 
 //# SWAGGER
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

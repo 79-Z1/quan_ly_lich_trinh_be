@@ -4,7 +4,7 @@ const CONVERSATION_COLLECTION_NAME = 'CONVERSATION';
 
 const participantSchema = new Schema({
     _id: false,
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
     status: {
         type: String,
         enum: ['blocked', 'normal'],
@@ -27,6 +27,10 @@ const messageSchema = new Schema({
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
     text: {
         type: String
+    },
+    seen: {
+        type: Boolean,
+        default: false
     },
     pinned: {
         type: Boolean,
@@ -60,7 +64,7 @@ const conversationSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['private', 'group'],
+        enum: ['private', 'group','ai'],
         default: 'private'
     },
     isActive: {
