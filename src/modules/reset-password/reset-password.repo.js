@@ -1,12 +1,13 @@
 'use strict';
 
 const { BadrequestError } = require("../../common/core/error.response");
-const { toObjectId, getInfoData } = require("../../common/utils/object.util");
 const resetPasswordModel = require("../reset-password/reset-password.model");
 const userModel = require("../user/user.model");
 const crypto = require('crypto');
 const nodeMailer = require('nodemailer');
 const { mailFormat } = require("./mail-format");
+const bcrypt = require('bcrypt');
+const { toObjectId } = require("../../common/utils/object.util");
 
 const generateUniqueToken = (email) => {
     const currentTime = Date.now().toString();
@@ -48,21 +49,50 @@ const sendResetPasswordRequest = async (email) => {
         if (!user) return false;
         const token = generateUniqueToken(email);
 
-        // const resetPassword = await resetPasswordModel.create({
-        //     user: toObjectId(user._id),
-        //     token: token
-        // });
+        const resetPassword = await resetPasswordModel.create({
+            user: toObjectId(user._id),
+            token: token
+        });
 
-        await sendMail(email, 'Reset password', mailFormat(`http://localhost:3000/reset-password/${token}`));
+        await sendMail(email, 'Reset password', mailFormat(`http://localhost:3000/forgot-password/${resetPassword.token}`));
 
     } catch (error) {
-        console.log("🚀 ~ sendResetPasswordRequest ~ error:::", error);
         throw new BadrequestError('Send reset password request failed');
     }
 }
 
+const resetPassword = async (newPassword, token) => {
+    const user = await resetPasswordModel.findOne({
+        token
+    }).lean();
+    if (!user) return false;
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const userUpdate = await userModel.findOneAndUpdate({
+        _id: user.user
+    }, {
+        password: passwordHash
+    }, {
+        new: true
+    }).lean();
+    return userUpdate;
+}
+
+const validateToken = async (token) => {
+    const resetPasswordDoc = await resetPasswordModel.findOne({ token }).lean();
+
+    if (!resetPasswordDoc) return false;
+
+    const isExpired = Date.now() > new Date(resetPasswordDoc.expiredAt).getTime();
+
+    if (isExpired) return false;
+
+    return true;
+};
+
 
 
 module.exports = {
-    sendResetPasswordRequest
+    sendResetPasswordRequest,
+    resetPassword,
+    validateToken
 }

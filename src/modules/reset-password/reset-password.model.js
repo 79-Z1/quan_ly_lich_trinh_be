@@ -11,7 +11,7 @@ const resetPasswordSchema = new Schema({
     },
     expiredAt: {
         type: Date,
-        default: () => new Date(Date.now() + 3 * 60 * 60 * 1000)
+        default: () => new Date(Date.now() + 30 * 60 * 1000)
     }
 }, {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },

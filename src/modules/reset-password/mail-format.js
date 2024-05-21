@@ -21,7 +21,7 @@ const mailFormat = (url) => {
                         </tr>
                         <tr>
                             <td style="text-align:center;">
-                                <img width="200px" src="/src/assets/images/logo.png" title="logo" alt="logo">
+                                <img width="200px" src="https://github.com/79-Z1/wander_be/blob/main/src/assets/images/logo.png?raw=true" title="logo" alt="logo">
                             </td>
                         </tr>
                         <tr>
@@ -36,17 +36,18 @@ const mailFormat = (url) => {
                                     </tr>
                                     <tr>
                                         <td style="padding:0 35px;">
-                                            <h1 style="color:#1e1e2d; font-weight:500; margin:0;font-size:32px;font-family:'Rubik',sans-serif;">You have
-                                                requested to reset your password</h1>
+                                            <h1 style="color:#1e1e2d; font-weight:500; margin:0;font-size:32px;font-family:'Rubik',sans-serif;">
+                                                Bạn đã yêu cầu cấp lại mật khẩu
+                                            </h1>
                                             <span
                                                 style="display:inline-block; vertical-align:middle; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"></span>
                                             <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
-                                                We cannot simply send you your old password. A unique link to reset your
-                                                password has been generated for you. To reset your password, click the
-                                                following link and follow the instructions.
+                                                Chúng tôi không thể đơn giản gửi cho bạn mật khẩu cũ của bạn.
+                                                Một liên kết duy nhất để đặt lại mật khẩu đã được tạo cho bạn.
+                                                Để đặt lại mật khẩu của bạn, hãy nhấp vào liên kết sau và làm theo hướng dẫn.
                                             </p>
                                             <p style="color:red;font-size:15px;line-height:24px;">
-                                                This link will expire within 30 minutes !!!
+                                                Đường dẫn này sẽ hết hạn sau 30 phút !!!
                                             </p>
                                             <a style="font-size: 20px" href="${url}">
                                                 Lấy lại mật khẩu ở đây
@@ -63,7 +64,7 @@ const mailFormat = (url) => {
                         </tr>
                         <tr>
                             <td style="text-align:center;">
-                                <p style="font-size:14px; color:rgba(69, 80, 86, 0.7411764705882353); line-height:18px; margin:0 0 0;">&copy; <strong>dakhoathientrang.com</strong></p>
+                                <p style="font-size:14px; color:rgba(69, 80, 86, 0.7411764705882353); line-height:18px; margin:0 0 0;">&copy; <strong>Wander</strong></p>
                             </td>
                         </tr>
                         <tr>
