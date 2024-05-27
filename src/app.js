@@ -51,6 +51,7 @@ chatNamespace.on('connection', async (socket) => {
     await chatEvent(socket, chatNamespace);
 });
 
+
 //# SWAGGER
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

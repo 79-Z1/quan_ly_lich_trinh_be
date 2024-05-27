@@ -121,74 +121,79 @@ class AccessService {
     }
 
     static async signInWithGoogle({ token }) {
-        logger.info(
-            `AccessService -> signInWithGoogle [START]\n(INPUT) ${handleObject({ token })
-            }`
-        )
-        // Get user account from Google
-        const googleProfile = await this.getGoogleAccount(token);
-
-        // Find user by email
-        let user = await findUserByEmail(googleProfile.email);
-
-        if (user) {
-            // Check if user is active
-            if (!user.isActive) {
-                throw new AuthFailurError('User is inactive');
-            }
-            // Check if user is existing with another provider
-            if (user.provider !== 'google') {
-                throw new ConflicRequestError(`User is existing with ${user.provider} provider.`);
-            }
-            // Find user using Google OAuth account
-            user = await findByOAuthAccount('google', googleProfile.sub);
-        } else {
-            // Create new user from Google OAuth account
-            user = await this.createNewUserFromOAuthProfile('google', googleProfile);
-            await Promise.all(
-                Friend.create({
-                    userId: user._id
-                }),
-                chatRepo.create({
-                    participants: [{ user: user._id.toString() }],
-                    creatorId: user._id.toString(),
-                    type: 'ai'
-                })
+        try {
+            logger.info(
+                `AccessService -> signInWithGoogle [START]\n(INPUT) ${handleObject({ token })
+                }`
             )
-        }
+            // Get user account from Google
+            const googleProfile = await this.getGoogleAccount(token);
 
-        // create privateKey, publicKey and save public key
-        const { privateKey, publicKey } = generatePublicPrivateToken();
-        const publicKeyString = publicKey.toString();
-        const publicKeyObject = crypto.createPublicKey(publicKeyString)
+            // Find user by email
+            let user = await findUserByEmail(googleProfile.email);
 
-        // generate tokens
-        const { _id: userId } = user;
-        const tokens = await createTokenPair({ userId }, publicKeyObject, privateKey);
+            if (user) {
+                // Check if user is active
+                if (!user.isActive) {
+                    throw new AuthFailurError('User is inactive');
+                }
+                // Check if user is existing with another provider
+                if (user.provider !== 'google') {
+                    throw new ConflicRequestError(`User is existing with ${user.provider} provider.`);
+                }
+                // Find user using Google OAuth account
+                user = await findByOAuthAccount('google', googleProfile.sub);
+            } else {
+                // Create new user from Google OAuth account
+                user = await this.createNewUserFromOAuthProfile('google', googleProfile);
+                await Promise.all(
+                    Friend.create({
+                        userId: user._id
+                    }),
+                    chatRepo.create({
+                        participants: [{ user: user._id.toString() }],
+                        creatorId: user._id.toString(),
+                        type: 'ai'
+                    })
+                )
+            }
 
-        // get data return login
-        const publicKeyStringSaved = await KeyTokenService.createKeyToken({
-            refreshToken: tokens.refreshToken,
-            userId,
-            publicKeyString
-        })
+            // create privateKey, publicKey and save public key
+            const { privateKey, publicKey } = generatePublicPrivateToken();
+            const publicKeyString = publicKey.toString();
+            const publicKeyObject = crypto.createPublicKey(publicKeyString)
 
-        if (!publicKeyStringSaved) throw new AuthFailurError('Create key token failed');
+            // generate tokens
+            const { _id: userId } = user;
+            const tokens = await createTokenPair({ userId }, publicKeyObject, privateKey);
 
-        logger.info(
-            `AccessService -> signInWithGoogle [END]\n(OUTPUT) ${handleObject({
+            // get data return login
+            const publicKeyStringSaved = await KeyTokenService.createKeyToken({
+                refreshToken: tokens.refreshToken,
+                userId,
+                publicKeyString
+            })
+
+            if (!publicKeyStringSaved) throw new AuthFailurError('Create key token failed');
+
+            logger.info(
+                `AccessService -> signInWithGoogle [END]\n(OUTPUT) ${handleObject({
+                    user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address'], object: user }),
+                    accessToken: tokens.accessToken,
+                    refreshToken: tokens.refreshToken
+                })
+                }`
+            )
+
+            return {
                 user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address'], object: user }),
                 accessToken: tokens.accessToken,
                 refreshToken: tokens.refreshToken
-            })
-            }`
-        )
+            };
+        } catch (error) {
+            console.log("🚀 ~ AccessService ~ signInWithGoogle ~ error:::", error);
 
-        return {
-            user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address'], object: user }),
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken
-        };
+        }
     }
 
     static async getGoogleAccount(token) {

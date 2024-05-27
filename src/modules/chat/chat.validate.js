@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const participantJoi = Joi.object({
-    user: Joi.string().required(),
+    user: Joi.required(),
     status: Joi.string().valid('blocked', 'normal').default('normal')
 });
 
@@ -18,6 +18,7 @@ const messageJoi = Joi.object({
 });
 
 const conversationJoi = Joi.object({
+    _id: Joi.optional(),
     creatorId: Joi.string().required(),
     name: Joi.string().optional(),
     participants: Joi.array().items(participantJoi).default([]),

@@ -28,8 +28,8 @@ const updateUser = async (data) => {
 }
 const statisticScheduleByMonth = async () => {
     try {
-        const startDate = new Date('2024-01-01');
-        const endDate = new Date('2024-12-31');
+        const startDate = new Date('2024-01-01T00:00:00.000Z');
+        const endDate = new Date('2024-12-31T23:59:59.999Z');
 
         const result = await Schedule.aggregate([
             {
@@ -51,12 +51,16 @@ const statisticScheduleByMonth = async () => {
             }
         ]);
 
+        const lookup = {};
+        result.forEach(item => {
+            lookup[item._id.month] = item.count;
+        });
+
         const statistics = [];
         for (let month = 1; month <= 12; month++) {
-            const monthData = result.find(item => item._id.month === month);
             statistics.push({
                 name: `Tháng ${month}`,
-                total: monthData ? monthData.count : 0
+                total: lookup[month] || 0
             });
         }
 
@@ -69,51 +73,51 @@ const statisticScheduleByMonth = async () => {
 
 const statisticUserThisMonth = async () => {
     try {
-        const totalNewUserThisMonth = await userModel.countDocuments({
-            createdAt: {
-                $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-                $lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
-            }
-        });
-        const totalNewUserLastMonth = await userModel.countDocuments({
-            createdAt: {
-                $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-                $lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
-            }
-        });
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        const [totalNewUserThisMonth, totalNewUserLastMonth] = await Promise.all([
+            userModel.countDocuments({ createdAt: { $gte: startOfThisMonth, $lte: endOfThisMonth } }),
+            userModel.countDocuments({ createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } })
+        ]);
+
         return {
             thisMonth: totalNewUserThisMonth,
             lastMonth: totalNewUserLastMonth,
-            diff: totalNewUserThisMonth - totalNewUserLastMonth > 0 ? totalNewUserThisMonth - totalNewUserLastMonth : 0
-        }
+            diff: Math.max(totalNewUserThisMonth - totalNewUserLastMonth, 0)
+        };
     } catch (error) {
+        console.error("Failed to retrieve user statistics:", error);
         throw new Error('Failed to retrieve user statistics');
     }
-}
+};
 
 const statisticScheduleThisMonth = async () => {
     try {
-        const totalScheduleThisMonth = await Schedule.countDocuments({
-            startDate: {
-                $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-                $lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
-            }
-        });
-        const totalScheduleLastMonth = await Schedule.countDocuments({
-            startDate: {
-                $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-                $lte: new Date(new Date().getFullYear(), new Date().getMonth(), 0)
-            }
-        });
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        const [totalScheduleThisMonth, totalScheduleLastMonth] = await Promise.all([
+            Schedule.countDocuments({ startDate: { $gte: startOfThisMonth, $lte: endOfThisMonth } }),
+            Schedule.countDocuments({ startDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } })
+        ]);
+
         return {
             thisMonth: totalScheduleThisMonth,
             lastMonth: totalScheduleLastMonth,
-            diff: totalScheduleThisMonth - totalScheduleLastMonth > 0 ? totalScheduleThisMonth - totalScheduleLastMonth : 0
-        }
+            diff: Math.max(totalScheduleThisMonth - totalScheduleLastMonth, 0)
+        };
     } catch (error) {
+        console.error("Failed to retrieve schedule statistics:", error);
         throw new Error('Failed to retrieve schedule statistics');
     }
-}
+};
 
 
 

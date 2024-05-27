@@ -3,6 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
+const { toObjectId } = require("../../common/utils/object.util");
 const { Schedule } = require("../schedule/schedule.model");
 const chatRepo = require("./chat.repo");
 
@@ -37,17 +38,17 @@ class ChatService {
         )
 
         const schedule = await Schedule.findById(scheduleId).lean();
-        if (schedule?.members.length < 2) {
+        if (schedule?.members.length < 1) {
             throw new BadrequestError('Group chat must at least 2 participants')
         }
 
         const formatParticipants = [];
-        formatParticipants.push({ userId: creatorId });
+        formatParticipants.push({ user: toObjectId(creatorId) });
         schedule.members.map(member => {
-            formatParticipants.push({ userId: member.memberId.toString() })
+            formatParticipants.push({ user: member.memberId })
         });
 
-        const newConversation = await chatRepo.createGroupChat({ creatorId, name, participants: formatParticipants, type: 'group' })
+        const newConversation = await chatRepo.createGroupChat({ _id: schedule._id, creatorId, name, participants: formatParticipants, type: 'group' })
 
         logger.info(
             `ChatService -> createGroupChat [END]\n(OUTPUT) ${handleObject({ newConversation })
@@ -103,6 +104,30 @@ class ChatService {
         )
         const conversation = await chatRepo.updateMessageStatusToSeen({ conversationId, messageIds });
         return conversation;
+    }
+
+    static updateConversationName = async ({ conversationId, name }) => {
+        if (!conversationId) throw new BadrequestError('conversationId is required');
+        if (!name) throw new BadrequestError('Name is required');
+
+        logger.info(
+            `ChatService -> updateConversationName [START]\n(INPUT) ${handleObject({ conversationId, name })
+            }`
+        )
+        const status = await chatRepo.updateConversationName({ conversationId, name });
+        return status;
+    }
+
+    static deleteConversationOnUserSide = async ({ conversationId, userId }) => {
+        if (!conversationId) throw new BadrequestError('conversationId is required');
+        if (!userId) throw new BadrequestError('userId is required');
+
+        logger.info(
+            `ChatService -> deleteConversationOnUserSide [START]\n(INPUT) ${handleObject({ conversationId, userId })
+            }`
+        )
+        const status = await chatRepo.deleteConversationOnUserSide({ conversationId, userId });
+        return status;
     }
 }
 

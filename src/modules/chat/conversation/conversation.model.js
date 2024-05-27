@@ -9,6 +9,10 @@ const participantSchema = new Schema({
         type: String,
         enum: ['blocked', 'normal'],
         default: 'normal'
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -64,7 +68,7 @@ const conversationSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['private', 'group','ai'],
+        enum: ['private', 'group', 'ai'],
         default: 'private'
     },
     isActive: {
@@ -79,5 +83,7 @@ const conversationSchema = new Schema({
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
     collection: CONVERSATION_COLLECTION_NAME
 });
+
+conversationSchema.index({ 'participants.user': 1, 'participants.isDeleted': 1 });
 
 module.exports = model(CONVERSATION_DOCUMENT_NAME, conversationSchema);

@@ -9,7 +9,8 @@ class ScheduleController {
         new SuccessResponse({
             message: 'Get all schedule success',
             metadata: await ScheduleService.getAll({
-                userId: req.user.userId
+                userId: req.user.userId,
+                tab: req.query.tab
             })
         }).send(res);
     }
@@ -51,7 +52,21 @@ class ScheduleController {
     getDetailSchedule = async (req, res, next) => {
         new SuccessResponse({
             message: 'Get detail schedule success',
-            metadata: await ScheduleService.getDetailSchedule(req.params.scheduleId)
+            metadata: await ScheduleService.getDetailSchedule(req.params.scheduleId, req.user.userId)
+        }).send(res);
+    }
+
+    deleteSchedule = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Delete schedule success',
+            metadata: await ScheduleService.deleteSchedule(req.body.scheduleId)
+        }).send(res);
+    }
+
+    editPermission = async (req, res, next) => {
+        new SuccessResponse({
+            message: 'Edit permissions success',
+            metadata: await ScheduleService.editPermission(req.body)
         }).send(res);
     }
 }

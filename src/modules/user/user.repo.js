@@ -1,11 +1,12 @@
 'use strict';
-
+const mongoose = require('mongoose');
 const { BadrequestError } = require("../../common/core/error.response");
-const { toObjectId, getInfoDataWithout } = require("../../common/utils/object.util");
+const { toObjectId, getInfoDataWithout, getInfoData } = require("../../common/utils/object.util");
 const { normalizeString } = require("../../common/utils/string");
 const Friend = require("../friend/friend.model");
 const { Schedule } = require("../schedule/schedule.model");
 const User = require("./user.model");
+const { orderBy } = require('lodash');
 
 const findUserByname = async (name) => {
     try {
@@ -18,7 +19,7 @@ const findUserByname = async (name) => {
 const getUserSettings = async (userId) => {
     try {
         const user = await User.findOne({ _id: toObjectId(userId) }).lean();
-        return getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'isActive', 'createdAt', 'updatedAt', 'role'], object: user });
+        return getInfoDataWithout({ fields: ['socketId', 'password', '__v', 'providerAccountId', 'isActive', 'createdAt', 'updatedAt', 'role', 'location', 'authType', 'provider'], object: user });
     } catch (error) {
         throw new BadrequestError('Get user settings failed')
     }
@@ -28,7 +29,24 @@ const getUserProfile = async (yourId, userId) => {
     try {
         const user = await User.findOne({ _id: toObjectId(userId) }).lean();
         const userFriend = await Friend.findOne({ userId: toObjectId(userId) });
-        const userSchedule = await Schedule.find({ ownerId: toObjectId(userId), isActive: true, startDate: { $gte: new Date() }, endDate: { $lte: new Date() } }).lean();
+        const userSchedule = await Schedule.find({
+            $or: [
+                { ownerId: userId },
+                { 'members.memberId': userId }
+            ],
+            isActive: true,
+            endDate: { $lt: new Date() }
+        }).populate({
+            path: 'members.memberId',
+            select: 'name email avatar'
+        }).select('topic imageUrl members startDate endDate').lean();
+        userSchedule.forEach(schedule => {
+            schedule.members = schedule.members.map(member => ({
+                ...member.memberId,
+                permission: member.permission,
+                isActive: member.isActive
+            }));
+        });
 
         const friendIds = userFriend.friends.map(friend => friend.friendId.toString());
         const requestSentIds = userFriend.friendsRequestSent.map(friend => friend.recipientId.toString());
@@ -166,7 +184,6 @@ const searchUsersByName = async (name) => {
             const normalizedUserName = normalizeString(user.name);
             return regex.test(normalizedUserName);
         });
-        console.log("🚀 ~ searchUsersByName ~ filteredUsers:::", filteredUsers);
 
         return filteredUsers ?? []
     } catch (error) {
@@ -192,6 +209,137 @@ const updateUser = async (userId, data) => {
     }
 }
 
+const suggestFriends = async (userId) => {
+    try {
+        const maxDistanceInKm = 10;
+        const locationSuggestions = [];
+        const suggestionSet = new Set();
+
+        const [currentUser, user] = await Promise.all([
+            Friend.findOne({ userId: userId }).lean(),
+            User.findById(userId).select('location').lean()
+        ]);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const currentUserFriends = new Set(currentUser ? currentUser.friends.map(friend => friend.friendId) : []);
+        const currentUserFriendRequests = new Set(currentUser ? currentUser.friendsRequestSent.map(friend => friend.recipientId) : []);
+        const currentUserFriendReveived = new Set(currentUser ? currentUser.friendsRequestReceved.map(friend => friend.senderId) : []);
+
+        const excludeUserIds = new Set([
+            ...Array.from(currentUserFriends),
+            ...Array.from(currentUserFriendRequests),
+            ...Array.from(currentUserFriendReveived),
+            userId
+        ]);
+        const excludeUserIdsArray = Array.from(excludeUserIds);
+
+        // Gợi ý theo vị trí
+        if (user.location?.lat && user.location?.lng) {
+            const allUsers = await User.find({
+                _id: { $nin: excludeUserIdsArray },
+                role: 'user'
+            }).select('_id name avatar email location').lean();
+
+            allUsers.forEach(otherUser => {
+                if (otherUser.location && otherUser.location.lat && otherUser.location.lng) {
+                    const distance = haversineDistance(user.location, otherUser.location);
+                    if (distance <= maxDistanceInKm) {
+                        locationSuggestions.push({
+                            ...otherUser,
+                            distance: distance.toFixed(1)
+                        });
+                        suggestionSet.add(otherUser._id.toString());
+                    }
+                }
+            });
+
+            if (locationSuggestions.length >= 10) {
+                return locationSuggestions.slice(0, 10).sort((a, b) => a.distance - b.distance);
+            }
+        }
+
+        // Gợi ý người dùng ngẫu nhiên
+        const randomSuggestions = await User.aggregate([
+            {
+                $match: {
+                    _id: { $ne: new mongoose.Types.ObjectId(userId), $nin: excludeUserIdsArray },
+                    role: 'user'
+                }
+            },
+            { $sample: { size: 10 - locationSuggestions.length } },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    avatar: 1,
+                    email: 1
+                }
+            }
+        ]);
+
+        randomSuggestions.forEach(otherUser => {
+            if (!suggestionSet.has(otherUser._id?.toString())) {
+                if (otherUser.location && otherUser.location.lat && otherUser.location.lng) {
+                    console.log("🚀 ~ suggestFriends ~ otherUser:::", otherUser);
+                    const distance = haversineDistance(user.location, otherUser.location);
+                    locationSuggestions.push({
+                        ...otherUser,
+                        distance: distance.toFixed(1)
+                    });
+                } else {
+                    locationSuggestions.push(otherUser);
+                }
+                suggestionSet.add(otherUser._id.toString());
+            }
+        });
+
+        return locationSuggestions;
+    } catch (error) {
+        throw new Error('Failed to suggest friends');
+    }
+};
+
+const updateUserLocation = async (userId, location) => {
+    try {
+        const userUpdated = await User.findByIdAndUpdate(userId, { location })
+        return !!userUpdated
+    } catch (error) {
+        throw new BadrequestError('Update user location failed')
+    }
+}
+
+
+const haversineDistance = (coords1, coords2) => {
+    const toRad = (value) => value * Math.PI / 180;
+
+    const { lat: lat1, lng: lon1 } = coords1;
+    const { lat: lat2, lng: lon2 } = coords2;
+
+    const R = 6371; // bán kính trung bình của Trái Đất
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    return distance;
+};
+
+const getUserInfo = async (userId) => {
+    const user = await User.findById(toObjectId(userId)).lean()
+    return {
+        user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: user }),
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }
+}
+
 module.exports = {
     findUserByname,
     findUserByEmail,
@@ -207,5 +355,135 @@ module.exports = {
     getUserName,
     getUserProfile,
     getUserSettings,
-    updateUser
+    updateUser,
+    suggestFriends,
+    updateUserLocation,
+    getUserInfo
 }
+
+
+// const suggestFriends = async (userId) => {
+//     try {
+//         const maxDistanceInKm = 10;
+//         const maxDistanceInRadians = maxDistanceInKm / 6378.1;
+//         let locationSuggestions = [];
+
+//         const [currentUser, user] = await Promise.all([
+//             Friend.findOne({ userId: userId }).lean(),
+//             User.findById(userId).select('location').lean()
+//         ]);
+
+//         const currentUserFriends = currentUser ? currentUser.friends.map(friend => friend.friendId) : [];
+
+//         const suggestionSet = new Set(); // To track unique user IDs
+
+//         // Gợi ý theo vị trí
+//         if (user?.location?.lat && user?.location?.lng) {
+//             console.log('User location:', user.location);
+//             console.log('Max distance in radians:', maxDistanceInRadians);
+
+//             const allUsers = await User.find({
+//                 _id: { $ne: userId, $nin: currentUserFriends },
+//                 role: 'user'
+//             }).select('_id name avatar email location').lean();
+
+//             // Lọc các người dùng trong khoảng cách tối đa
+//             locationSuggestions = allUsers.filter(otherUser => {
+//                 if (otherUser.location && otherUser.location.lat && otherUser.location.lng) {
+//                     const distance = haversineDistance(user.location, otherUser.location);
+//                     return distance <= maxDistanceInKm;
+//                 }
+//                 return false;
+//             }).slice(0, 10);
+
+//             locationSuggestions.forEach(user => suggestionSet.add(user._id.toString()));
+
+//             console.log('Location suggestions:', locationSuggestions);
+
+//             // Nếu đủ số lượng gợi ý, trả về kết quả
+//             if (locationSuggestions.length >= 10) {
+//                 return locationSuggestions;
+//             }
+//         }
+
+//         // Gợi ý theo bạn chung
+//         const commonFriendsSuggestions = await Friend.aggregate([
+//             {
+//                 $match: {
+//                     userId: { $ne: new mongoose.Types.ObjectId(userId) },
+//                     'friends.friendId': { $in: currentUserFriends }
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     userId: 1,
+//                     mutualFriends: {
+//                         $size: {
+//                             $filter: {
+//                                 input: "$friends",
+//                                 as: "friend",
+//                                 cond: { $in: ["$$friend.friendId", currentUserFriends] }
+//                             }
+//                         }
+//                     }
+//                 }
+//             },
+//             {
+//                 $match: {
+//                     mutualFriends: { $gt: 0 }
+//                 }
+//             },
+//             {
+//                 $sort: { mutualFriends: -1 }
+//             },
+//             {
+//                 $limit: 10 - locationSuggestions.length
+//             }
+//         ]);
+
+//         const commonFriendIds = commonFriendsSuggestions.map(friend => friend.userId);
+//         const commonFriendUsers = await User.find({
+//             _id: { $in: commonFriendIds, $nin: currentUserFriends, $ne: userId },
+//             role: 'user'
+//         }).select('_id name avatar email').lean();
+
+//         commonFriendUsers.forEach(user => {
+//             if (!suggestionSet.has(user._id.toString())) {
+//                 locationSuggestions.push(user);
+//                 suggestionSet.add(user._id.toString());
+//             }
+//         });
+
+//         // Nếu vẫn chưa đủ, gợi ý người dùng ngẫu nhiên
+//         if (locationSuggestions.length < 10) {
+//             const randomSuggestions = await User.aggregate([
+//                 {
+//                     $match: {
+//                         _id: { $ne: new mongoose.Types.ObjectId(userId), $nin: currentUserFriends },
+//                         role: 'user'
+//                     }
+//                 },
+//                 { $sample: { size: 10 - locationSuggestions.length } },
+//                 {
+//                     $project: {
+//                         _id: 1,
+//                         name: 1,
+//                         avatar: 1
+//                     }
+//                 }
+//             ]);
+
+//             randomSuggestions.forEach(user => {
+//                 if (!suggestionSet.has(user._id.toString())) {
+//                     locationSuggestions.push(user);
+//                     suggestionSet.add(user._id.toString());
+//                 }
+//             });
+//         }
+
+//         return locationSuggestions;
+//     } catch (error) {
+//         console.error('Failed to suggest friends:', error);
+//         throw new Error('Failed to suggest friends');
+//     }
+// };

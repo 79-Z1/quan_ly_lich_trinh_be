@@ -1,5 +1,6 @@
 'use strict';
 
+const { orderBy } = require("lodash");
 const { BadrequestError } = require("../../common/core/error.response");
 const notificationModel = require("./notification.model");
 
@@ -10,15 +11,19 @@ const get = async (userId) => {
             path: 'emitter',
             select: 'name avatar _id'
         }).lean();
-        return notifications;
+        return orderBy(notifications, ['createdAt'], ['desc']);
     } catch (error) {
         throw new BadrequestError('Get notifications failed')
     }
 }
 
-const pushNotification = async ({ emitter, userId, content, url }) => {
+const pushNotification = async ({ emitter = null, userId, content, url }) => {
     try {
-        await notificationModel.create({ emitter, user: userId, content, url });
+        if (!emitter) {
+            await notificationModel.create({ user: userId, content, url });
+        } else {
+            await notificationModel.create({ emitter, user: userId, content, url });
+        }
         const notifications = await get(userId);
         return notifications;
     } catch (error) {

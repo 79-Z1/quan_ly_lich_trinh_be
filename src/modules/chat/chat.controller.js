@@ -51,6 +51,26 @@ class ChatController {
         }).send(res);
     }
 
+    updateConversationName = async (req, res) => {
+        new SuccessResponse({
+            message: 'Update conversation name success',
+            metadata: await ChatService.updateConversationName({
+                conversationId: req.body.conversationId,
+                name: req.body.name
+            })
+        }).send(res);
+    }
+
+    deleteConversationOnUserSide = async (req, res) => {
+        new SuccessResponse({
+            message: 'Delete conversation on user side success',
+            metadata: await ChatService.deleteConversationOnUserSide({
+                conversationId: req.body.conversationId,
+                userId: req.user.userId
+            })
+        }).send(res);
+    }
+
 }
 
 module.exports = new ChatController();

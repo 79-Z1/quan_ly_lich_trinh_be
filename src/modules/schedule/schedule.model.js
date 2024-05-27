@@ -9,7 +9,7 @@ const memberSchema = new Schema({
     permission: {
         type: String,
         enum: ['edit', 'view'],
-        default: 'view'
+        default: 'edit'
     },
     isActive: {
         type: Boolean,
@@ -85,6 +85,7 @@ const scheduleSchema = new Schema({
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
     collection: COLLECTION_NAME
 });
+scheduleSchema.index({ startDate: 1 });
 
 module.exports = {
     Schedule: model(DOCUMENT_NAME, scheduleSchema),

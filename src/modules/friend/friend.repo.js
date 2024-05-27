@@ -91,45 +91,43 @@ const getFriendsReceived = async (userId) => {
 
 const getFriendForFriendPage = async ({ userId }) => {
     try {
-        const friend = await Friend.findOne({ userId: toObjectId(userId) });
+        const friend = await Friend.findOne({ userId: toObjectId(userId) })
+            .populate('friends.friendId', 'avatar name _id socketId')
+            .populate('friendsRequestReceved.senderId', 'avatar name _id socketId')
+            .populate('friendsRequestSent.recipientId', 'avatar name _id socketId');
 
-        const [friends, friendsRequestReceved, friendsRequestSent] = await Promise.all([
-            Promise.all(friend.friends.map(async (friend) => {
-                const result = await User.findById(toObjectId(friend.friendId))
-                return {
-                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
-                    createdAt: friend.createdAt,
-                    updatedAt: friend.updatedAt
-                };
-            })),
-            Promise.all(friend.friendsRequestReceved.map(async (friend) => {
-                const result = await User.findById(toObjectId(friend.senderId))
-                return {
-                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
-                    createdAt: friend.createdAt,
-                    updatedAt: friend.updatedAt
-                };
-            })),
-            Promise.all(friend.friendsRequestSent.map(async (friend) => {
-                const result = await User.findById(toObjectId(friend.recipientId))
-                return {
-                    user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: result }),
-                    createdAt: friend.createdAt,
-                    updatedAt: friend.updatedAt
-                };
-            }))
-        ]);
+        if (!friend) {
+            throw new Error('No friends found for this user');
+        }
 
+        const friends = friend.friends.map(friend => ({
+            user: friend.friendId,
+            createdAt: friend.createdAt,
+            updatedAt: friend.updatedAt
+        }));
+
+        const friendsRequestReceved = friend.friendsRequestReceved.map(request => ({
+            user: request.senderId,
+            createdAt: request.createdAt,
+            updatedAt: request.updatedAt
+        }));
+
+        const friendsRequestSent = friend.friendsRequestSent.map(request => ({
+            user: request.recipientId,
+            createdAt: request.createdAt,
+            updatedAt: request.updatedAt
+        }));
 
         return {
             friends,
             friendsRequestReceved,
             friendsRequestSent
-        }
+        };
     } catch (error) {
-        throw new BadrequestError('Get friends for friend page failed')
+        console.error("🚀 ~ getFriendForFriendPage ~ error:::", error);
+        throw new BadrequestError('Get friends for friend page failed');
     }
-}
+};
 
 const removeFriendRequest = async ({ userId, friendId }) => {
     try {
@@ -252,19 +250,6 @@ const rejectFriendRequest = async ({ userId, friendId }) => {
     }
 }
 
-const getFriendForSocket = async (userId) => {
-    try {
-        const user = await User.findById(toObjectId(userId)).lean()
-        return {
-            user: getInfoData({ fields: ['avatar', 'name', '_id', 'socketId'], object: user }),
-            createdAt: new Date(),
-            updatedAt: new Date()
-        }
-    } catch (error) {
-        throw new Error('Get friend for socket failed')
-    }
-}
-
 const unfriend = async ({ userId, friendId }) => {
     try {
         const friendExists = await User.exists({ _id: friendId })
@@ -312,6 +297,5 @@ module.exports = {
     acceptFriendRequest,
     rejectFriendRequest,
     getFriendsReceived,
-    getFriendForFriendPage,
-    getFriendForSocket
+    getFriendForFriendPage
 };

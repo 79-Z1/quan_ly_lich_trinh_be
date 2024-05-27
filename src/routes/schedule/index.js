@@ -11,7 +11,9 @@ router.use(authentication)
 
 /// ---------------------------- Need check authen route ---------------------------- ///
 router.post('', asyncHandler(scheduleController.create));
+router.post('/delete', asyncHandler(scheduleController.deleteSchedule));
 router.patch('', asyncHandler(scheduleController.update));
+router.patch('/edit-permission', asyncHandler(scheduleController.editPermission));
 router.get('/calendar', asyncHandler(scheduleController.getUserCalendar));
 router.get('/edit/:scheduleId', asyncHandler(scheduleController.getById));
 router.get('/:scheduleId', asyncHandler(scheduleController.getDetailSchedule));

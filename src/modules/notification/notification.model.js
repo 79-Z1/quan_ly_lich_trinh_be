@@ -11,7 +11,7 @@ const notificationSchema = new Schema({
     },
     emitter: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'User'
     },
     content: {

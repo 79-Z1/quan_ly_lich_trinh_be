@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { createUser, searchUsersByName, getUserProfile, getUserSettings, updateUser } = require("./user.repo");
+const { createUser, searchUsersByName, getUserProfile, getUserSettings, updateUser, suggestFriends, updateUserLocation } = require("./user.repo");
 
 
 class UserService {
@@ -83,6 +83,28 @@ class UserService {
             }`
         )
         return user
+    }
+
+    static suggestFriends = async (userId) => {
+        logger.info(
+            `AdminService -> suggestFriends [START]\n(INPUT) ${handleObject({ userId })}`
+        )
+        const users = await suggestFriends(userId);
+        logger.info(
+            `AdminService -> suggestFriends [END]\n(OUTPUT) ${handleObject({ users })}`
+        )
+        return users ?? [];
+    }
+
+    static updateUserLocation = async (userId, location) => {
+        logger.info(
+            `UserService -> updateUserLocation [START]\n(INPUT) ${handleObject({ userId, location })}`
+        )
+        const user = await updateUserLocation(userId, location)
+        logger.info(
+            `UserService -> updateUserLocation [END]\n(OUTPUT) ${handleObject({ user })}`
+        )
+        return !!user ?? false;
     }
 }
 

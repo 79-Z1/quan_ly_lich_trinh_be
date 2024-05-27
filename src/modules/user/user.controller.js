@@ -32,6 +32,20 @@ class UserController {
         }).send(res);
     }
 
+    suggestFriends = async (req, res) => {
+        new SuccessResponse({
+            message: 'Suggest friends successfully',
+            metadata: await UserService.suggestFriends(req.user.userId)
+        }).send(res);
+    }
+
+    updateUserLocation = async (req, res) => {
+        new SuccessResponse({
+            message: 'Update user location successfully',
+            metadata: await UserService.updateUserLocation(req.user.userId, req.body.location)
+        }).send(res);
+    }
+
 }
 
 module.exports = new UserController();

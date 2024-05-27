@@ -34,6 +34,35 @@ const get = async (conversationId) => {
     }
 }
 
+const updateConversationName = async ({ conversationId, name }) => {
+    try {
+        const updatedConversation = await Conversation.findOneAndUpdate(
+            { _id: toObjectId(conversationId) },
+            { name },
+            { new: true }
+        )
+        return !!updatedConversation;
+    } catch (error) {
+        throw new BadrequestError('Update conversation failed')
+    }
+}
+
+const deleteConversationOnUserSide = async ({ conversationId, userId }) => {
+    try {
+        const deletedConversation = await Conversation.findOneAndUpdate(
+            { _id: toObjectId(conversationId), 'participants.user': toObjectId(userId) },
+            { $set: { 'participants.$[participant].isDeleted': true } },
+            {
+                arrayFilters: [{ 'participant.user': toObjectId(userId) }],
+                new: true
+            }
+        )
+        return !!deletedConversation;
+    } catch (error) {
+        throw new BadrequestError('Delete conversation failed')
+    }
+}
+
 const getMessages = async (conversationId) => {
     try {
         const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) }).populate({
@@ -51,22 +80,24 @@ const getMessages = async (conversationId) => {
 
 const getUserConversations = async (userId) => {
     try {
-        // Find both private and group conversations in a single query and populate participants
-        const conversations = await Conversation.find({ 'participants.user': userId })
+        const conversations = await Conversation.find({
+            'participants': {
+                $elemMatch: { user: userId, isDeleted: false }
+            }
+        })
             .populate({
                 path: 'participants.user',
                 model: 'User',
                 select: 'name avatar'
             })
             .select('_id name imageUrl type participants')
-            .lean();
+            .exec();
 
-        // Separate private and group conversations
         const privateConversations = [];
         const groupConversations = [];
         const aiConversations = [];
-        conversations.forEach(conversation => {
 
+        conversations.forEach(conversation => {
             if (conversation.type === 'ai') {
                 aiConversations.push({
                     _id: conversation._id,
@@ -91,7 +122,7 @@ const getUserConversations = async (userId) => {
 
         return { privateConversations, groupConversations, aiConversations };
     } catch (error) {
-        throw new BadrequestError('Failed to get conversations');
+        throw new Error('Failed to get conversations');
     }
 }
 
@@ -182,5 +213,7 @@ module.exports = {
     findConversationByParticipants,
     createGroupChat,
     getMessages,
-    updateMessageStatusToSeen
+    updateMessageStatusToSeen,
+    updateConversationName,
+    deleteConversationOnUserSide
 }
