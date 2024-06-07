@@ -63,7 +63,7 @@ const getAll = async (userId, tab) => {
             return schedule;
         });
 
-        return formattedSchedules;
+        return orderBy(formattedSchedules, ['startDate'], ['desc']);
     } catch (error) {
         throw new BadRequestError(`Failed to retrieve schedules: ${error.message}`);
     }
@@ -107,20 +107,6 @@ const getById = async (scheduleId) => {
     }
 }
 
-const getMemberList = async (members) => {
-    try {
-        const memberList = await Promise.all(members.map(async (member) => {
-            const scheduleMember = await User.findById(toObjectId(member.memberId))
-                .select(getUnSelectData(['__v', 'createdAt', 'updatedAt', 'password', 'providerAccountId', 'provider', 'isActive', 'authType', 'socketId']))
-            return scheduleMember
-        }));
-
-        return memberList ? memberList : []
-    } catch (error) {
-        throw new BadrequestError('Get member list failed')
-    }
-}
-
 const create = async (schedule) => {
     try {
         const { error, value } = createScheduleJoi.validate(schedule);
@@ -128,7 +114,7 @@ const create = async (schedule) => {
             throw new BadrequestError(error.details[0].message);
         }
 
-        if (compareDays(value.startDate, new Date())) {
+        if (ltOrEqDays(value.startDate, new Date())) {
             value.status = 'in_progress';
         }
 
@@ -144,10 +130,10 @@ const create = async (schedule) => {
         }
 
         const newSchedule = await Schedule.create(value);
-        scheduleJob(newSchedule);
+        scheduleJob(newSchedule._id);
+
         return newSchedule;
     } catch (error) {
-        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new schedule failed');
     }
 };
@@ -201,7 +187,9 @@ const editPermission = async ({ memberId, scheduleId, permission }) => {
 
 const getDetailSchedule = async (scheduleId, userId) => {
     try {
-        const currentDate = new Date();
+        const currentDate = new Date(Date.now());
+
+        // Get schedule and check if it's a group chat
         const [schedule, isExistGroupChat] = await Promise.all([
             Schedule.findById(scheduleId)
                 .populate({
@@ -221,24 +209,27 @@ const getDetailSchedule = async (scheduleId, userId) => {
         // Format plans and set status
         const formatPlans = schedule.plans.map(plan => {
             let status;
+
             if (isLessThanDays(plan.startAt, currentDate)) {
                 status = 'done';
             } else if (isGreaterThanDays(plan.startAt, currentDate)) {
                 status = 'in_coming';
             } else {
                 status = getStatusByTime(plan.startAt, plan.endAt);
+                console.log("🚀 ~ formatPlans ~ status:::aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             }
+
             return { ...plan, status };
         });
 
-        // Calculate schedule progress
+        // Calculate progress
         const countDoneSchedule = formatPlans.filter(plan => plan.status === 'done').length;
         const progress = {
             percent: Math.round((countDoneSchedule / schedule.plans.length) * 100),
             part: `${countDoneSchedule} / ${schedule.plans.length}`
         };
 
-        // Format members list
+        // Format member list
         const formattedMembers = schedule.members.map(member => ({
             ...member.memberId,
             permission: member.permission,
@@ -252,15 +243,14 @@ const getDetailSchedule = async (scheduleId, userId) => {
 
         schedule.plans = formatPlans;
         schedule.progress = progress;
-        schedule.members = formattedMembers;
+        schedule.members = [owner, ...formattedMembers];
         schedule.isOwner = isOwner;
         schedule.permission = isOwner ? 'edit' : userPermission;
         schedule.canCreateGroupChat = !isExistGroupChat && schedule.members.length >= 1;
-        schedule.members.unshift(owner);
 
         return schedule;
     } catch (error) {
-        throw new BadRequestError(`Get detail schedule failed: ${error.message}`);
+        throw new BadrequestError(`Get detail schedule failed: ${error.message}`);
     }
 };
 

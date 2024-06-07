@@ -27,10 +27,13 @@ const updateUser = async (data) => {
     }
 }
 const statisticScheduleByMonth = async () => {
-    try {
-        const startDate = new Date('2024-01-01T00:00:00.000Z');
-        const endDate = new Date('2024-12-31T23:59:59.999Z');
+    const currentYear = new Date().getFullYear();
+    // first day of the year
+    const startDate = new Date(currentYear, 0, 1);
+    // end day of the year
+    const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999);
 
+    try {
         const result = await Schedule.aggregate([
             {
                 $match: {
@@ -51,72 +54,53 @@ const statisticScheduleByMonth = async () => {
             }
         ]);
 
-        const lookup = {};
-        result.forEach(item => {
-            lookup[item._id.month] = item.count;
-        });
+        // Chuyển đổi kết quả thành một đối tượng lookup
+        const lookup = result.reduce((acc, item) => {
+            acc[item._id.month] = item.count;
+            return acc;
+        }, {});
 
-        const statistics = [];
-        for (let month = 1; month <= 12; month++) {
-            statistics.push({
-                name: `Tháng ${month}`,
-                total: lookup[month] || 0
-            });
-        }
-
-        return statistics;
+        // Tạo thống kê cho mỗi tháng
+        return Array.from({ length: 12 }, (_, index) => ({
+            name: `Tháng ${index + 1}`,
+            total: lookup[index + 1] || 0
+        }));
     } catch (error) {
         console.error("Error fetching schedule statistics:", error);
         throw new Error('Failed to retrieve schedule statistics');
     }
 };
 
-const statisticUserThisMonth = async () => {
-    try {
-        const now = new Date();
-        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+const getMonthlyStatistics = async (model, dateField) => {
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-        const [totalNewUserThisMonth, totalNewUserLastMonth] = await Promise.all([
-            userModel.countDocuments({ createdAt: { $gte: startOfThisMonth, $lte: endOfThisMonth } }),
-            userModel.countDocuments({ createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } })
+    try {
+        const [totalThisMonth, totalLastMonth] = await Promise.all([
+            model.countDocuments({ [dateField]: { $gte: startOfThisMonth, $lte: endOfThisMonth } }),
+            model.countDocuments({ [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth } })
         ]);
 
         return {
-            thisMonth: totalNewUserThisMonth,
-            lastMonth: totalNewUserLastMonth,
-            diff: Math.max(totalNewUserThisMonth - totalNewUserLastMonth, 0)
+            thisMonth: totalThisMonth,
+            lastMonth: totalLastMonth,
+            diff: Math.max(totalThisMonth - totalLastMonth, 0)
         };
     } catch (error) {
-        console.error("Failed to retrieve user statistics:", error);
-        throw new Error('Failed to retrieve user statistics');
+        console.error(`Failed to retrieve statistics for model ${model.modelName}:`, error);
+        throw new Error('Failed to retrieve statistics');
     }
 };
 
+const statisticUserThisMonth = async () => {
+    return getMonthlyStatistics(userModel, 'createdAt');
+};
+
 const statisticScheduleThisMonth = async () => {
-    try {
-        const now = new Date();
-        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-        const [totalScheduleThisMonth, totalScheduleLastMonth] = await Promise.all([
-            Schedule.countDocuments({ startDate: { $gte: startOfThisMonth, $lte: endOfThisMonth } }),
-            Schedule.countDocuments({ startDate: { $gte: startOfLastMonth, $lte: endOfLastMonth } })
-        ]);
-
-        return {
-            thisMonth: totalScheduleThisMonth,
-            lastMonth: totalScheduleLastMonth,
-            diff: Math.max(totalScheduleThisMonth - totalScheduleLastMonth, 0)
-        };
-    } catch (error) {
-        console.error("Failed to retrieve schedule statistics:", error);
-        throw new Error('Failed to retrieve schedule statistics');
-    }
+    return getMonthlyStatistics(Schedule, 'startDate');
 };
 
 

@@ -4,8 +4,9 @@ const COLLECTION_NAME = 'USER';
 
 
 const userSchema = new Schema({
-    socketId: {
-        type: String
+    isOnline: {
+        type: Boolean,
+        default: false
     },
     name: {
         type: String,

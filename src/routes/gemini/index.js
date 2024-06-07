@@ -9,5 +9,6 @@ const GeminiController = require('../../modules/gemini/gemini.controller');
 router.use(authentication)
 /// ---------------------------- Need check authen route ---------------------------- ///
 router.post('/', asyncHandler(GeminiController.askGemini));
+router.post('/suggestion', asyncHandler(GeminiController.getAISuggestion));
 
 module.exports = router;

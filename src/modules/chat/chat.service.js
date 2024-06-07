@@ -57,15 +57,15 @@ class ChatService {
         return newConversation;
     }
 
-    static get = async ({ conversationId }) => {
+    static get = async ({ conversationId, userId }) => {
         if (!conversationId) throw new BadrequestError('ConversationId is required');
 
         logger.info(
-            `ChatService -> get [START]\n(INPUT) ${handleObject({ conversationId })
+            `ChatService -> get [START]\n(INPUT) ${handleObject({ conversationId, userId })
             }`
         )
 
-        const conversation = await chatRepo.get(conversationId);
+        const conversation = await chatRepo.get(userId, conversationId);
         return conversation;
     }
 

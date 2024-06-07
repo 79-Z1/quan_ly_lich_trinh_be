@@ -1,29 +1,29 @@
 const { logger } = require("../../common/helpers/logger");
-const { updateUserSocketId } = require("../user/user.repo");
-const { chatEvent } = require("./chat.socket");
+const { updateUserStatus } = require("../user/user.repo");
 const { friendEvent } = require("./friend.socket");
 const { notificationEvent } = require("./notification.socket");
 
 const connection = async (socket) => {
-    const userId = socket.handshake?.auth?.userId
-    if (!userId) return
+    const userId = socket.handshake?.auth?.userId;
+    if (!userId) return;
     logger.info(`------- A user connected! || id: ${userId} -------`);
-
 
     try {
         socket.join(userId);
-        updateUserSocketId(userId, socket.id);
-        //# HANDLE FRIEND EVENT
+        updateUserStatus(userId, true).catch(error => logger.error(`Error updating user status on connection: ${error.message}`));
+
+        // Handle friend events
         await friendEvent(socket, userId);
-        //# HANDLE NOTIFICATION EVENT
+
+        // Handle notification events
         await notificationEvent(socket, userId);
     } catch (error) {
-        logger.error(error);
+        logger.error(`Error during connection handling: ${error.message}`);
     }
 
-
-    //# HANDLE DISCONNECT
-    await socket.on('disconnect', () => {
+    // Handle disconnect
+    socket.on('disconnect', () => {
+        updateUserStatus(userId, false).catch(error => logger.error(`Error updating user status on disconnect: ${error.message}`));
         logger.info(`####### A user disconnected! || id: ${socket.id} #######`);
     });
 };

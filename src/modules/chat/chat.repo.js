@@ -2,6 +2,7 @@
 
 const { BadrequestError } = require("../../common/core/error.response");
 const { toObjectId } = require("../../common/utils/object.util");
+const userModel = require("../user/user.model");
 const { conversationJoi, messageJoi } = require("./chat.validate");
 const Conversation = require("./conversation/conversation.model");
 
@@ -19,7 +20,7 @@ const create = async (conversation) => {
     }
 }
 
-const get = async (conversationId) => {
+const get = async (userId, conversationId) => {
     try {
         const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) }).populate({
             path: 'messages',
@@ -28,6 +29,12 @@ const get = async (conversationId) => {
                 select: 'avatar _id name'
             }
         }).lean();
+        if (conversation.type === 'private') {
+            const messageTargetId = conversation.participants.find(participant => participant.user.toString() !== userId);
+            const messageTarget = await userModel.findById(messageTargetId.user._id).select('name isOnline').lean();
+            conversation.name = messageTarget.name;
+            conversation.isOnline = messageTarget.isOnline;
+        }
         return conversation;
     } catch (error) {
         throw new BadrequestError('Get conversation failed')
@@ -63,6 +70,29 @@ const deleteConversationOnUserSide = async ({ conversationId, userId }) => {
     }
 }
 
+const getConversationHistory = async (conversationId) => {
+    try {
+        const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) })
+            .populate({
+                path: 'messages',
+                populate: {
+                    path: 'sender',
+                    select: 'avatar _id name'
+                },
+                select: 'sender text messageAt'
+            })
+            .lean();
+
+        if (!conversation) {
+            throw new BadrequestError('Conversation not found');
+        }
+
+        return conversation.messages;
+    } catch (error) {
+        throw new BadrequestError('Get conversation history failed');
+    }
+}
+
 const getMessages = async (conversationId) => {
     try {
         const conversation = await Conversation.findOne({ _id: toObjectId(conversationId) }).populate({
@@ -88,7 +118,7 @@ const getUserConversations = async (userId) => {
             .populate({
                 path: 'participants.user',
                 model: 'User',
-                select: 'name avatar'
+                select: 'name avatar isOnline'
             })
             .select('_id name imageUrl type participants')
             .exec();
@@ -102,14 +132,16 @@ const getUserConversations = async (userId) => {
                 aiConversations.push({
                     _id: conversation._id,
                     name: conversation.name,
-                    imageUrl: conversation.imageUrl
+                    imageUrl: conversation.imageUrl,
+                    isOnline: true
                 });
             } else if (conversation.type === 'private') {
                 const participant = conversation.participants.find(p => p.user._id.toString() !== userId);
                 privateConversations.push({
                     _id: conversation._id,
                     name: participant.user.name,
-                    imageUrl: participant.user.avatar
+                    imageUrl: participant.user.avatar,
+                    isOnline: participant.user.isOnline
                 });
             } else {
                 groupConversations.push({
@@ -215,5 +247,6 @@ module.exports = {
     getMessages,
     updateMessageStatusToSeen,
     updateConversationName,
-    deleteConversationOnUserSide
+    deleteConversationOnUserSide,
+    getConversationHistory
 }

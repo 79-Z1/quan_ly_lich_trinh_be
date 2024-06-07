@@ -92,8 +92,8 @@ class AccessService {
         const publicKeyObject = crypto.createPublicKey(publicKeyString)
 
         // 4. generate tokens
-        const { _id: userId } = foundUser;
-        const tokens = await createTokenPair({ userId }, publicKeyObject, privateKey);
+        const { _id: userId, name } = foundUser;
+        const tokens = await createTokenPair({ userId, name }, publicKeyObject, privateKey);
 
         // 5. get data return login
         const publicKeyStringSaved = await KeyTokenService.createKeyToken({
@@ -164,8 +164,8 @@ class AccessService {
             const publicKeyObject = crypto.createPublicKey(publicKeyString)
 
             // generate tokens
-            const { _id: userId } = user;
-            const tokens = await createTokenPair({ userId }, publicKeyObject, privateKey);
+            const { _id: userId, name } = user;
+            const tokens = await createTokenPair({ userId, name }, publicKeyObject, privateKey);
 
             // get data return login
             const publicKeyStringSaved = await KeyTokenService.createKeyToken({

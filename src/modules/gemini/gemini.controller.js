@@ -15,6 +15,13 @@ class GeminiController {
         }).send(res);
     }
 
+    getAISuggestion = async (req, res) => {
+        new SuccessResponse({
+            message: 'Get AI suggestion successfully',
+            metadata: await GeminiionService.getAISuggestion(req.user.name, req.body.location)
+        }).send(res);
+    }
+
 }
 
 module.exports = new GeminiController();

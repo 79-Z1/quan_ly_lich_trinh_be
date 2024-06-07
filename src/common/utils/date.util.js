@@ -1,4 +1,6 @@
 const dayjs = require('dayjs');
+const isBetween = require('dayjs/plugin/isBetween');
+dayjs.extend(isBetween);
 
 const compareDays = (date1, date2) => {
     const normalizedDate1 = dayjs(date1).startOf('day');
@@ -32,16 +34,17 @@ const isGreaterThanDays = (date1, date2) => {
 }
 
 const getStatusByTime = (date1, date2) => {
+    console.log("🚀 ~ getStatusByTime ~ date1, date2:::", { date1, date2 });
+    const now = dayjs();
     const normalizedDate1 = dayjs(date1);
     const normalizedDate2 = dayjs(date2);
 
-    const time1 = normalizedDate1.format('HH:mm:ss');
-    const time2 = normalizedDate2.format('HH:mm:ss');
-    const now = dayjs().format('HH:mm:ss');
-    if (now > time1 && now < time2) {
+    if (now.isBetween(normalizedDate1, normalizedDate2, 'second', '[)')) {
         return 'in_progress';
-    } else if (now >= time2) {
+    } else if (now.isAfter(normalizedDate2)) {
         return 'done';
+    } else {
+        return 'in_coming';
     }
 }
 

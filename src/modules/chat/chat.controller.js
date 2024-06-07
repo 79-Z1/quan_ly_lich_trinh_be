@@ -19,7 +19,8 @@ class ChatController {
         new SuccessResponse({
             message: 'Get chat by id success',
             metadata: await ChatService.get({
-                conversationId: req.params.conversationId
+                conversationId: req.params.conversationId,
+                userId: req.user.userId
             })
         }).send(res);
     }

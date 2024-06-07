@@ -90,9 +90,9 @@ const getUserProfile = async (yourId, userId) => {
     }
 }
 
-const updateUserSocketId = async (id, socketId) => {
+const updateUserStatus = async (id, status = false) => {
     try {
-        return await User.findOneAndUpdate({ _id: id }, { socketId }, { new: true })
+        await User.findOneAndUpdate({ _id: id }, { isOnline: status })
     } catch (error) {
         throw new Error('Update user socket id failed')
     }
@@ -236,7 +236,7 @@ const suggestFriends = async (userId) => {
         ]);
         const excludeUserIdsArray = Array.from(excludeUserIds);
 
-        // Gợi ý theo vị trí
+        // Suggest friends based on user location
         if (user.location?.lat && user.location?.lng) {
             const allUsers = await User.find({
                 _id: { $nin: excludeUserIdsArray },
@@ -261,7 +261,7 @@ const suggestFriends = async (userId) => {
             }
         }
 
-        // Gợi ý người dùng ngẫu nhiên
+        // Suggest random friends
         const randomSuggestions = await User.aggregate([
             {
                 $match: {
@@ -283,7 +283,6 @@ const suggestFriends = async (userId) => {
         randomSuggestions.forEach(otherUser => {
             if (!suggestionSet.has(otherUser._id?.toString())) {
                 if (otherUser.location && otherUser.location.lat && otherUser.location.lng) {
-                    console.log("🚀 ~ suggestFriends ~ otherUser:::", otherUser);
                     const distance = haversineDistance(user.location, otherUser.location);
                     locationSuggestions.push({
                         ...otherUser,
@@ -347,7 +346,7 @@ module.exports = {
     createUser,
     findUserById,
     updateOrCreateUser,
-    updateUserSocketId,
+    updateUserStatus,
     findByOAuthAccount,
     transformGoogleProfile,
     transformFacebookProfile,
