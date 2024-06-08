@@ -39,6 +39,13 @@ class AdminController {
         }).send(res);
     }
 
+    getRankingList = async (req, res) => {
+        new SuccessResponse({
+            message: 'Get ranking list successfully',
+            metadata: await AdminService.getRankingList()
+        }).send(res);
+    }
+
 }
 
 module.exports = new AdminController();

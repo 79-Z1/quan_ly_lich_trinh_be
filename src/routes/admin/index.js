@@ -12,6 +12,7 @@ router.use(authentication)
 router.get('/statistic/user', asyncHandler(AdminController.statisticUserThisMonth));
 router.get('/statistic/schedule', asyncHandler(AdminController.statisticScheduleThisMonth));
 router.get('/statistic', asyncHandler(AdminController.statisticScheduleByMonth));
+router.get('/ranking', asyncHandler(AdminController.getRankingList));
 router.get('/user', asyncHandler(AdminController.getAllUsers));
 router.patch('/user', asyncHandler(AdminController.updateUser));
 

@@ -178,7 +178,7 @@ const searchUsersByName = async (name) => {
     try {
         const normalizedSearchTerm = normalizeString(name);
         const regex = new RegExp(normalizedSearchTerm, 'i');
-        const users = await User.find({}).select('name email avatar').lean();
+        const users = await User.find({ role: 'user', isActive: true }).select('name email avatar').lean();
 
         const filteredUsers = users.filter(user => {
             const normalizedUserName = normalizeString(user.name);
@@ -244,8 +244,9 @@ const suggestFriends = async (userId) => {
             }).select('_id name avatar email location').lean();
 
             allUsers.forEach(otherUser => {
-                if (otherUser.location && otherUser.location.lat && otherUser.location.lng) {
+                if (otherUser.location) {
                     const distance = haversineDistance(user.location, otherUser.location);
+                    console.log("🚀 ~ suggestFriends ~ distance:::", distance);
                     if (distance <= maxDistanceInKm) {
                         locationSuggestions.push({
                             ...otherUser,
@@ -302,10 +303,12 @@ const suggestFriends = async (userId) => {
 };
 
 const updateUserLocation = async (userId, location) => {
+    console.log("🚀 ~ updateUserLocation ~ location:::", location);
     try {
-        const userUpdated = await User.findByIdAndUpdate(userId, { location })
+        const userUpdated = await User.findByIdAndUpdate(toObjectId(userId), { location })
         return !!userUpdated
     } catch (error) {
+        console.log("🚀 ~ updateUserLocation ~ error:::", error);
         throw new BadrequestError('Update user location failed')
     }
 }

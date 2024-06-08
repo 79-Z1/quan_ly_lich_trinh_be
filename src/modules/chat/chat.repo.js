@@ -16,6 +16,7 @@ const create = async (conversation) => {
         const newConversation = await Conversation.create(value);
         return newConversation;
     } catch (error) {
+        console.log("🚀 ~ create ~ error:::", error);
         throw new BadrequestError('Create new Conversation failed')
     }
 }
@@ -131,7 +132,7 @@ const getUserConversations = async (userId) => {
             if (conversation.type === 'ai') {
                 aiConversations.push({
                     _id: conversation._id,
-                    name: conversation.name,
+                    name: 'Trợ lý ảo Wander',
                     imageUrl: conversation.imageUrl,
                     isOnline: true
                 });

@@ -34,7 +34,6 @@ const isGreaterThanDays = (date1, date2) => {
 }
 
 const getStatusByTime = (date1, date2) => {
-    console.log("🚀 ~ getStatusByTime ~ date1, date2:::", { date1, date2 });
     const now = dayjs();
     const normalizedDate1 = dayjs(date1);
     const normalizedDate2 = dayjs(date2);
@@ -48,6 +47,20 @@ const getStatusByTime = (date1, date2) => {
     }
 }
 
+const getStatusByTime2 = (date1, date2) => {
+    const now = dayjs();
+    const normalizedDate1 = dayjs(date1);
+    const normalizedDate2 = dayjs(date2);
+
+    if (now.isBetween(normalizedDate1, normalizedDate2, 'second', '[)')) {
+        return 'in_progress';
+    } else if (now.isAfter(normalizedDate2)) {
+        return 'completed';
+    } else {
+        return 'pending';
+    }
+}
+
 const formatVNDate = (date) => {
     return dayjs(date).format('YYYY-MM-DD');
 };
@@ -58,5 +71,6 @@ module.exports = {
     ltOrEqDays,
     getStatusByTime,
     isLessThanDays,
-    isGreaterThanDays
+    isGreaterThanDays,
+    getStatusByTime2
 }

@@ -103,12 +103,66 @@ const statisticScheduleThisMonth = async () => {
     return getMonthlyStatistics(Schedule, 'startDate');
 };
 
+const getRankingList = async () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
+    try {
+        const scheduleRank = await Schedule.aggregate([
+            {
+                $match: {
+                    status: 'completed', // Filter for completed schedules
+                    startDate: { $gte: startOfMonth, $lte: endOfMonth } // Filter for the current month
+                }
+            },
+            {
+                $group: {
+                    _id: '$user',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { count: -1 }
+            },
+            {
+                $limit: 10 // Limit the results to the top 10
+            },
+            {
+                $lookup: {
+                    from: 'users', // The name of the user collection
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: '$user'
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    name: '$user.name',
+                    email: '$user.email',
+                    avatar: '$user.avatar',
+                    count: 1
+                }
+            }
+        ]);
+
+        return scheduleRank;
+    } catch (error) {
+        console.error("Get ranking list failed:", error);
+        throw new BadrequestError('Get ranking list failed');
+    }
+};
 
 module.exports = {
     getAllUsers,
     updateUser,
     statisticScheduleByMonth,
     statisticUserThisMonth,
-    statisticScheduleThisMonth
+    statisticScheduleThisMonth,
+    getRankingList
 }

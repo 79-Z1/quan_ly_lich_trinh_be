@@ -83,8 +83,6 @@ const userSchema = new Schema({
     collection: COLLECTION_NAME
 });
 
-userSchema.index({ location: '2dsphere' });
-
 function isValidPhoneNumber(value) {
     const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/g;
     return phoneRegex.test(value);

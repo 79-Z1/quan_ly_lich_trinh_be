@@ -20,7 +20,7 @@ const get = async (userId) => {
 const pushNotification = async ({ emitter = null, userId, content, url }) => {
     try {
         if (!emitter) {
-            await notificationModel.create({ user: userId, content, url });
+            await notificationModel.create({ user: userId, content, url, type: 'system' });
         } else {
             await notificationModel.create({ emitter, user: userId, content, url });
         }

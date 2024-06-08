@@ -9,6 +9,11 @@ const notificationSchema = new Schema({
         required: true,
         ref: 'User'
     },
+    type: {
+        type: String,
+        enum: ['system', 'client'],
+        default: 'client'
+    },
     emitter: {
         type: Schema.Types.ObjectId,
         required: false,

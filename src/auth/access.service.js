@@ -10,7 +10,7 @@ const { findUserByEmail, createUser, findByOAuthAccount, transformGoogleProfile,
 const KeyTokenService = require("../modules/key-token/key-token.service");
 const { updateKeyToken } = require("../modules/key-token/keytoken.repo");
 const { handleObject, generatePublicPrivateToken, getInfoData, isStrongPassword } = require("../common/utils");
-const { AuthFailurError, ConflicRequestError } = require("../common/core/error.response");
+const { AuthFailurError, ConflicRequestError, BadrequestError } = require("../common/core/error.response");
 const conversationModel = require("../modules/chat/conversation/conversation.model");
 const chatRepo = require("../modules/chat/chat.repo");
 
@@ -82,6 +82,11 @@ class AccessService {
         const foundUser = await findUserByEmail(email);
         if (!foundUser) throw new AuthFailurError('User not found');
 
+        // Check if user is active
+        if (!foundUser.isActive) {
+            throw new AuthFailurError('User is inactive');
+        }
+
         // 2. match password
         const match = await bcrypt.compare(password, foundUser.password);
         if (!match) throw new AuthFailurError('Password is incorrect');
@@ -106,14 +111,14 @@ class AccessService {
 
         logger.info(
             `AccessService -> login [END]\n(OUTPUT) ${handleObject({
-                user: getInfoData({ fields: ['_id', 'name', 'email'], object: foundUser }),
+                user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address', 'role'], object: foundUser }),
                 tokens: tokens,
                 rememberMe
             })
             }`
         )
         return {
-            user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address', 'role'], object: foundUser }),
+            user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address', 'role', 'isActive'], object: foundUser }),
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             rememberMe
@@ -133,10 +138,6 @@ class AccessService {
             let user = await findUserByEmail(googleProfile.email);
 
             if (user) {
-                // Check if user is active
-                if (!user.isActive) {
-                    throw new AuthFailurError('User is inactive');
-                }
                 // Check if user is existing with another provider
                 if (user.provider !== 'google') {
                     throw new ConflicRequestError(`User is existing with ${user.provider} provider.`);
@@ -146,16 +147,16 @@ class AccessService {
             } else {
                 // Create new user from Google OAuth account
                 user = await this.createNewUserFromOAuthProfile('google', googleProfile);
-                await Promise.all(
+                await Promise.all([
                     Friend.create({
                         userId: user._id
                     }),
                     chatRepo.create({
-                        participants: [{ user: user._id.toString() }],
-                        creatorId: user._id.toString(),
+                        participants: [{ user: user._id }],
+                        creatorId: user._id,
                         type: 'ai'
                     })
-                )
+                ])
             }
 
             // create privateKey, publicKey and save public key
@@ -186,13 +187,12 @@ class AccessService {
             )
 
             return {
-                user: getInfoData({ fields: ['_id', 'name', 'email', 'avatar', 'address'], object: user }),
+                user: getInfoData({ fields: ['_id', 'name', 'email', 'role', 'avatar', 'address', 'isActive'], object: user }),
                 accessToken: tokens.accessToken,
                 refreshToken: tokens.refreshToken
             };
         } catch (error) {
             console.log("🚀 ~ AccessService ~ signInWithGoogle ~ error:::", error);
-
         }
     }
 
@@ -237,16 +237,15 @@ class AccessService {
         )
         // B1: check Username
         const user = await findUserByEmail(email);
-        if (user) throw new AuthFailurError('User is existed');
+        if (user) throw new BadrequestError('User is existed');
 
         // B2: hash password
-        if (!isStrongPassword(password)) throw new AuthFailurError('Password is not strong enough');
         const passwordHash = await bcrypt.hash(password, 10);
         const newUser = await createUser({
             name, email, password: passwordHash
         });
 
-        if (!newUser) throw new AuthFailurError('Sign up failed')
+        if (!newUser) throw new BadrequestError('Sign up failed')
         await Promise.all([
             Friend.create({
                 userId: newUser._id

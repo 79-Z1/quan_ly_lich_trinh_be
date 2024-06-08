@@ -1,7 +1,7 @@
 const { BadrequestError } = require('../../common/core/error.response');
 const { Schedule, Member } = require('./schedule.model');
 const { createScheduleJoi, updateScheduleJoi } = require('./schedule.validate.js');
-const { compareDays, ltOrEqDays, getStatusByTime, isLessThanDays, isGreaterThanDays, formatVNDate } = require('../../common/utils/date.util');
+const { compareDays, ltOrEqDays, getStatusByTime, isLessThanDays, isGreaterThanDays, formatVNDate, getStatusByTime2 } = require('../../common/utils/date.util');
 const User = require('../user/user.model.js');
 const { toObjectId, getUnSelectData } = require('../../common/utils/object.util.js');
 const { getUserSettings } = require('../user/user.repo.js');
@@ -20,18 +20,15 @@ const getAll = async (userId, tab) => {
             ]
         };
 
-        const currentDate = new Date();
-
         switch (tab) {
             case 'upcoming':
-                baseQuery.startDate = { $gte: currentDate };
+                baseQuery.status = 'pending';
                 break;
             case 'completed':
-                baseQuery.endDate = { $lt: currentDate };
+                baseQuery.status = 'completed';
                 break;
             case 'in_progress':
-                baseQuery.startDate = { $lte: currentDate };
-                baseQuery.endDate = { $gte: currentDate };
+                baseQuery.status = 'in_progress';
                 break;
         }
 
@@ -65,7 +62,7 @@ const getAll = async (userId, tab) => {
 
         return orderBy(formattedSchedules, ['startDate'], ['desc']);
     } catch (error) {
-        throw new BadRequestError(`Failed to retrieve schedules: ${error.message}`);
+        throw new BadrequestError(`Failed to retrieve schedules: ${error.message}`);
     }
 };
 
@@ -87,7 +84,7 @@ const getUserCalendar = async (userId) => {
 
         return calendars;
     } catch (error) {
-        throw new BadRequestError(`Get user calendar failed: ${error.message}`);
+        throw new BadrequestError(`Get user calendar failed: ${error.message}`);
     }
 };
 
@@ -113,9 +110,14 @@ const create = async (schedule) => {
         if (error) {
             throw new BadrequestError(error.details[0].message);
         }
+        const currentDate = new Date(Date.now());
 
-        if (ltOrEqDays(value.startDate, new Date())) {
-            value.status = 'in_progress';
+        if (isLessThanDays(value.startDate, currentDate)) {
+            value.status = 'completed';
+        } else if (isGreaterThanDays(value.startDate, currentDate)) {
+            value.status = 'pending';
+        } else {
+            value.status = getStatusByTime2(value.startDate, value.endDate);
         }
 
         if (value.plans && value.plans.length > 0) {
@@ -177,7 +179,6 @@ const editPermission = async ({ memberId, scheduleId, permission }) => {
             { $set: { 'members.$[member].permission': permission } },
             { arrayFilters: [{ 'member.memberId': toObjectId(memberId) }], new: true }
         );
-        console.log("🚀 ~ editPermission ~ updatedSchedule:::", updatedSchedule);
 
         return updatedSchedule;
     } catch (error) {
@@ -216,7 +217,6 @@ const getDetailSchedule = async (scheduleId, userId) => {
                 status = 'in_coming';
             } else {
                 status = getStatusByTime(plan.startAt, plan.endAt);
-                console.log("🚀 ~ formatPlans ~ status:::aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             }
 
             return { ...plan, status };

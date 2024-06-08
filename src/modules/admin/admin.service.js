@@ -3,7 +3,7 @@
 const { BadrequestError } = require("../../common/core/error.response");
 const { logger } = require("../../common/helpers/logger");
 const { handleObject } = require("../../common/utils");
-const { getAllUsers, updateUser, statisticScheduleByMonth, statisticUserThisMonth, statisticScheduleThisMonth } = require("./admin.repo");
+const { getAllUsers, updateUser, statisticScheduleByMonth, statisticUserThisMonth, statisticScheduleThisMonth, getRankingList } = require("./admin.repo");
 
 class AdminService {
 
@@ -65,6 +65,17 @@ class AdminService {
             `AdminService -> statisticScheduleThisMonth [END]\n(OUTPUT) ${handleObject({ statistic })}`
         )
         return statistic
+    }
+
+    static getRankingList = async () => {
+        logger.info(
+            `AdminService -> getRankingList [START]`
+        )
+        const rankingList = await getRankingList();
+        logger.info(
+            `AdminService -> getRankingList [END]\n(OUTPUT) ${handleObject({ rankingList })}`
+        )
+        return rankingList
     }
 }
 

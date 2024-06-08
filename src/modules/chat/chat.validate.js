@@ -19,13 +19,13 @@ const messageJoi = Joi.object({
 
 const conversationJoi = Joi.object({
     _id: Joi.optional(),
-    creatorId: Joi.string().required(),
+    creatorId: Joi.required(),
     name: Joi.string().optional(),
     participants: Joi.array().items(participantJoi).default([]),
     isActive: Joi.boolean().default(true),
     messages: Joi.array().items(messageJoi).default([]),
     type: Joi.string().valid('private', 'group', 'ai').default('private'),
-    image: Joi.string().optional()
+    imageUrl: Joi.string().optional()
 });
 
 module.exports = {
